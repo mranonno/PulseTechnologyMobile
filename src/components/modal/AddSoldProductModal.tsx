@@ -13,6 +13,8 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import {
   BottomSheetBackdrop,
@@ -36,20 +38,18 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
   const styles = useMemo(() => getStyles(colors, bottom), [colors, bottom]);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  // States for inputs
   const [productName, setProductName] = useState("");
   const [model, setModel] = useState("");
   const [serial, setSerial] = useState("");
   const [price, setPrice] = useState("");
-
   const [customerName, setCustomerName] = useState("");
   const [contact, setContact] = useState("");
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
-
   const [date, setDate] = useState(new Date());
   const [isDateSelected, setIsDateSelected] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handlePresent = useCallback(() => {
     bottomSheetModalRef.current?.present();
@@ -78,6 +78,33 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
     setNote("");
     setDate(new Date());
     setIsDateSelected(false);
+  };
+
+  const validateForm = () => {
+    if (!productName || !model || !price || !customerName || !contact) {
+      Alert.alert("Missing Fields", "Please fill all required fields.");
+      return false;
+    }
+    if (isNaN(Number(price)) || Number(price) <= 0) {
+      Alert.alert("Invalid Price", "Price should be a positive number.");
+      return false;
+    }
+    if (!/^\d{6,}$/.test(contact)) {
+      Alert.alert("Invalid Contact", "Contact must be at least 6 digits.");
+      return false;
+    }
+    return true;
+  };
+
+  const submitHandler = () => {
+    if (!validateForm()) return;
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      Alert.alert("Success", "Product sold successfully!");
+      resetForm();
+      handleDismiss();
+    }, 1500);
   };
 
   useImperativeHandle(ref, () => ({
@@ -111,7 +138,6 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
         keyboardDismissMode={"on-drag"}
         contentContainerStyle={styles.container}
       >
-        {/* Product Details */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🛒 Product Details</Text>
 
@@ -119,6 +145,7 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
             value={productName}
             onChangeText={setProductName}
             placeholder="Name"
+            autoFocus
             placeholderTextColor={colors.placeholder}
             style={styles.input}
           />
@@ -173,7 +200,6 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
           )}
         </View>
 
-        {/* Customer Details */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>👤 Customer Details</Text>
           <TextInput
@@ -200,7 +226,6 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
           />
         </View>
 
-        {/* Notes */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📝 Description</Text>
           <TextInput
@@ -214,7 +239,6 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
           />
         </View>
 
-        {/* Buttons */}
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={styles.cancelBtn}
@@ -228,13 +252,14 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
 
           <TouchableOpacity
             style={styles.confirmBtn}
-            onPress={() => {
-              // 👉 API call or submit logic here
-              resetForm();
-              bottomSheetModalRef.current?.dismiss();
-            }}
+            onPress={submitHandler}
+            disabled={loading}
           >
-            <Text style={styles.confirmText}>Confirm</Text>
+            {loading ? (
+              <ActivityIndicator color={colors.pureWhite} />
+            ) : (
+              <Text style={styles.confirmText}>Confirm</Text>
+            )}
           </TouchableOpacity>
         </View>
       </BottomSheetScrollView>
@@ -244,7 +269,6 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
 
 export default AddSoldProductModal;
 
-// Style generator
 const getStyles = (colors: Colors, bottom: number) =>
   StyleSheet.create({
     container: {
