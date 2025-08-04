@@ -1,20 +1,22 @@
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import React from "react";
+import { SafeAreaView, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useCallback, useRef } from "react";
 import { useThemeContext } from "../theme/ThemeProvider";
 import SoldProductCard from "../components/SoldProductCard";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import AddSoldProductModal from "../components/modal/AddSoldProductModal";
 
 const SoldScreen = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const handleAddSoldItem = () => {
-    // TODO: Add logic or navigation to create a new sold product
-    console.log("Add new sold item");
-  };
+  const handleAddSoldItem = useCallback(() => {
+    bottomSheetRef.current?.present();
+  }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Example SoldProductCards */}
       <SoldProductCard title="Product A" price={200} soldDate="2025-08-01" />
       <SoldProductCard title="Product B" price={450} soldDate="2025-07-20" />
@@ -23,7 +25,9 @@ const SoldScreen = () => {
       <TouchableOpacity style={styles.fab} onPress={handleAddSoldItem}>
         <Ionicons name="add" size={28} color={colors.pureWhite} />
       </TouchableOpacity>
-    </View>
+      {/* Add Sold Product Modal */}
+      <AddSoldProductModal ref={bottomSheetRef} />
+    </SafeAreaView>
   );
 };
 

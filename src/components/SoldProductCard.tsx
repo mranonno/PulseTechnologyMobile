@@ -56,7 +56,6 @@ const getStyles = (colors: Colors) =>
       borderRadius: 12,
       padding: 12,
       marginVertical: 6,
-      marginHorizontal: 12,
       shadowColor: colors.shadow,
       shadowOpacity: 0.08,
       shadowRadius: 6,

@@ -1,37 +1,31 @@
-import React, { forwardRef } from 'react';
-import {
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
-import {
-  BottomSheetModal,
-} from '@gorhom/bottom-sheet';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeContext } from '../theme/ThemeProvider';
-import GlobalBottomSheetModal from './GlobalBottomSheetModal';
+import React, { forwardRef } from "react";
+import { Text, StyleSheet, TouchableOpacity } from "react-native";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { Ionicons } from "@expo/vector-icons";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import GlobalBottomSheetModal from "./GlobalBottomSheetModal";
 
 type ThemeOption = {
-  key: 'system' | 'light' | 'dark';
+  key: "system" | "light" | "dark";
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
 };
 
 const themeOptions: ThemeOption[] = [
-  { key: 'system', label: 'System Default', icon: 'phone-portrait-outline' },
-  { key: 'light', label: 'Light Mode', icon: 'sunny-outline' },
-  { key: 'dark', label: 'Dark Mode', icon: 'moon-outline' },
+  { key: "system", label: "System Default", icon: "phone-portrait-outline" },
+  { key: "light", label: "Light Mode", icon: "sunny-outline" },
+  { key: "dark", label: "Dark Mode", icon: "moon-outline" },
 ];
 
 const ThemeSettingModal = forwardRef<BottomSheetModal>((_, ref) => {
   const { colors, theme, setTheme } = useThemeContext();
   const styles = getStyles(colors);
 
-  const handleSelect = (selectedTheme: ThemeOption['key']) => {
+  const handleSelect = (selectedTheme: ThemeOption["key"]) => {
     setTheme(selectedTheme);
 
     // Safely dismiss modal if ref is an object
-    if (ref && typeof ref !== 'function' && ref.current) {
+    if (ref && typeof ref !== "function" && ref.current) {
       ref.current.dismiss();
     }
   };
@@ -71,12 +65,12 @@ const ThemeSettingModal = forwardRef<BottomSheetModal>((_, ref) => {
             <Ionicons
               name={
                 isSelected
-                  ? 'radio-button-on-outline'
-                  : 'radio-button-off-outline'
+                  ? "radio-button-on-outline"
+                  : "radio-button-off-outline"
               }
               size={22}
               color={isSelected ? colors.primary : colors.text}
-              style={{ marginLeft: 'auto' }}
+              style={{ marginLeft: "auto" }}
             />
           </TouchableOpacity>
         );
@@ -91,14 +85,14 @@ const getStyles = (colors: Colors) =>
   StyleSheet.create({
     title: {
       fontSize: 22,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.text,
       marginBottom: 30,
-      alignSelf: 'center',
+      alignSelf: "center",
     },
     optionContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       borderWidth: 1.5,
       borderRadius: 10,
       paddingVertical: 14,
