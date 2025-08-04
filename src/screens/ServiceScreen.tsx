@@ -67,7 +67,11 @@ const ServiceScreen = () => {
       />
 
       {/* Floating Add Button */}
-      <TouchableOpacity style={styles.fab} onPress={handleAddServiceItem}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.fab}
+        onPress={handleAddServiceItem}
+      >
         <Ionicons name="add" size={28} color={colors.pureWhite} />
       </TouchableOpacity>
     </View>

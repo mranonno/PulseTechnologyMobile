@@ -22,7 +22,11 @@ const SoldScreen = () => {
       <SoldProductCard title="Product B" price={450} soldDate="2025-07-20" />
 
       {/* Floating Plus Button */}
-      <TouchableOpacity style={styles.fab} onPress={handleAddSoldItem}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.fab}
+        onPress={handleAddSoldItem}
+      >
         <Ionicons name="add" size={28} color={colors.pureWhite} />
       </TouchableOpacity>
       {/* Add Sold Product Modal */}

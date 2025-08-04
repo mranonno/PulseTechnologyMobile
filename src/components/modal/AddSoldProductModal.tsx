@@ -5,6 +5,7 @@ import React, {
   useImperativeHandle,
   forwardRef,
   useState,
+  useEffect,
 } from "react";
 import {
   View,
@@ -15,6 +16,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  BackHandler,
 } from "react-native";
 import {
   BottomSheetBackdrop,
@@ -50,14 +52,37 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
   const [isDateSelected, setIsDateSelected] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handlePresent = useCallback(() => {
+    setIsModalOpen(true);
     bottomSheetModalRef.current?.present();
   }, []);
 
   const handleDismiss = useCallback(() => {
+    setIsModalOpen(false);
     bottomSheetModalRef.current?.dismiss();
   }, []);
+
+  useImperativeHandle(ref, () => ({
+    present: handlePresent,
+    dismiss: handleDismiss,
+  }));
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        if (isModalOpen) {
+          handleDismiss();
+          return true;
+        }
+        return false;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, [isModalOpen]);
 
   const onDateChange = (_: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -107,11 +132,6 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
     }, 1500);
   };
 
-  useImperativeHandle(ref, () => ({
-    present: handlePresent,
-    dismiss: () => bottomSheetModalRef.current?.dismiss(),
-  }));
-
   return (
     <BottomSheetModal
       name="AddSoldProductModal"
@@ -135,39 +155,39 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
     >
       <Text style={styles.title}>Sold Product</Text>
       <BottomSheetScrollView
-        keyboardDismissMode={"on-drag"}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.container}
       >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🛒 Product Details</Text>
-
           <TextInput
+            autoFocus
+            placeholder="Name"
             value={productName}
             onChangeText={setProductName}
-            placeholder="Name"
-            autoFocus
             placeholderTextColor={colors.placeholder}
             style={styles.input}
           />
           <TextInput
+            placeholder="Model"
             value={model}
             onChangeText={setModel}
-            placeholder="Model"
             placeholderTextColor={colors.placeholder}
             style={styles.input}
           />
           <TextInput
+            placeholder="S/N"
             value={serial}
             onChangeText={setSerial}
-            placeholder="S/N"
             placeholderTextColor={colors.placeholder}
             style={styles.input}
           />
           <TextInput
+            placeholder="Price"
             value={price}
             onChangeText={setPrice}
             keyboardType="numeric"
-            placeholder="Price"
             placeholderTextColor={colors.placeholder}
             style={styles.input}
           />
@@ -183,11 +203,7 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
             >
               {isDateSelected ? formatDate(date) : "Select date"}
             </Text>
-            <Ionicons
-              name="chevron-down"
-              size={20}
-              color={colors.placeholder}
-            />
+            <Ionicons name="chevron-down" size={20} color={colors.text} />
           </TouchableOpacity>
 
           {showDatePicker && (
@@ -203,24 +219,24 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>👤 Customer Details</Text>
           <TextInput
+            placeholder="Name"
             value={customerName}
             onChangeText={setCustomerName}
-            placeholder="Name"
             placeholderTextColor={colors.placeholder}
             style={styles.input}
           />
           <TextInput
+            placeholder="Contact no"
             value={contact}
             onChangeText={setContact}
-            placeholder="Contact no"
             keyboardType="phone-pad"
             placeholderTextColor={colors.placeholder}
             style={styles.input}
           />
           <TextInput
+            placeholder="Address"
             value={address}
             onChangeText={setAddress}
-            placeholder="Address"
             placeholderTextColor={colors.placeholder}
             style={styles.input}
           />
@@ -229,9 +245,9 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📝 Description</Text>
           <TextInput
+            placeholder="Optional notes..."
             value={note}
             onChangeText={setNote}
-            placeholder="Optional notes..."
             placeholderTextColor={colors.placeholder}
             multiline
             numberOfLines={3}
@@ -280,31 +296,8 @@ const getStyles = (colors: Colors, bottom: number) =>
       fontSize: 18,
       fontWeight: "600",
       textAlign: "center",
-      marginBottom: 16,
-    },
-    section: {
-      marginBottom: 20,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: colors.text,
-      marginBottom: 8,
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 10,
-      padding: 12,
+      marginTop: 8,
       marginBottom: 12,
-      color: colors.text,
-      fontSize: 15,
-      backgroundColor: colors.card,
-    },
-    dateInput: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
     },
     buttonRow: {
       flexDirection: "row",
@@ -337,4 +330,28 @@ const getStyles = (colors: Colors, bottom: number) =>
       fontWeight: "600",
     },
     handleBar: { backgroundColor: colors.primary, width: 50 },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 10,
+      padding: 12,
+      marginBottom: 12,
+      color: colors.text,
+      fontSize: 15,
+      backgroundColor: colors.card,
+    },
+    section: {
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: 8,
+    },
+    dateInput: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
   });
