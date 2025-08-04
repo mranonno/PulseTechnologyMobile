@@ -13,6 +13,7 @@ import ServiceScreen from "../screens/ServiceScreen";
 import SoldScreen from "../screens/SoldScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import { useThemeContext } from "../theme/ThemeProvider";
+import HomeStackNavigator from "./HomeStackNavigator";
 
 // --- Custom Param List ---
 export type BottomTabParamList = {
@@ -40,7 +41,7 @@ const TAB_SCREENS: {
   component: React.ComponentType<any>;
   title?: string;
 }[] = [
-  { name: "Home", component: HomeScreen, title: "Pulse Technology" },
+  { name: "Home", component: HomeStackNavigator, title: "Pulse Technology" },
   { name: "Sold", component: SoldScreen, title: "Sold Products" },
   { name: "Service", component: ServiceScreen },
   { name: "Settings", component: SettingsScreen },
@@ -100,7 +101,10 @@ export default function BottomTabNavigator() {
           key={name}
           name={name}
           component={component}
-          options={{ headerTitle: title ?? name }}
+          options={{
+            headerTitle: title ?? name,
+            headerShown: name !== "Home",
+          }}
         />
       ))}
     </Tab.Navigator>

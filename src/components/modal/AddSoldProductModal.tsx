@@ -203,7 +203,11 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
             >
               {isDateSelected ? formatDate(date) : "Select date"}
             </Text>
-            <Ionicons name="chevron-down" size={20} color={colors.text} />
+            <Ionicons
+              name="chevron-down"
+              size={20}
+              color={colors.placeholder}
+            />
           </TouchableOpacity>
 
           {showDatePicker && (
@@ -238,7 +242,8 @@ const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
             value={address}
             onChangeText={setAddress}
             placeholderTextColor={colors.placeholder}
-            style={styles.input}
+            style={[styles.input, { textAlignVertical: "top", height: 80 }]}
+            numberOfLines={3}
           />
         </View>
 
