@@ -116,7 +116,7 @@ const getStyles = (colors: Colors) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      shadowColor: "#000",
+      shadowColor: colors.shadow,
       shadowOpacity: 0.05,
       shadowOffset: { width: 0, height: 2 },
       shadowRadius: 6,

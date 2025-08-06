@@ -17,6 +17,7 @@ export const darkColors = {
   pureWhite: "#FFFFFF",
   pureBlack: "#000000",
   modalOverlay: "#FFFFFF1A",
+  imageBackground: "#1A1A1A",
 };
 
 export type DarkColors = typeof darkColors;

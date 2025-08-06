@@ -1,12 +1,15 @@
-import 'react-native-reanimated';
-import 'react-native-gesture-handler';
+// App.tsx
+import "react-native-reanimated";
+import "react-native-gesture-handler";
 
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { ThemeProvider } from './src/theme/ThemeProvider';
-import { StyleSheet } from 'react-native';
-import Main from './src/_layout/Main';
+import React from "react";
+import { StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+
+import { ThemeProvider } from "./src/theme/ThemeProvider";
+import Main from "./src/_layout/Main";
 
 export default function App() {
   return (

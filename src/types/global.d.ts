@@ -17,4 +17,5 @@ interface Colors {
   modalOverlay: string;
   pendingBackground: string;
   pendingText: string;
+  imageBackground: string;
 }

@@ -8,14 +8,13 @@ import { Dimensions, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RouteProp } from "@react-navigation/native";
 
-import HomeScreen from "../screens/HomeScreen";
-import ServiceScreen from "../screens/ServiceScreen";
-import SoldScreen from "../screens/SoldScreen";
-import SettingsScreen from "../screens/SettingsScreen";
 import { useThemeContext } from "../theme/ThemeProvider";
 import HomeStackNavigator from "./HomeStackNavigator";
+import SoldScreen from "../screens/SoldScreen";
+import ServiceScreen from "../screens/ServiceScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+import CustomHeader from "../components/CustomHeader";
 
-// --- Custom Param List ---
 export type BottomTabParamList = {
   Home: undefined;
   Sold: undefined;
@@ -23,7 +22,6 @@ export type BottomTabParamList = {
   Settings: undefined;
 };
 
-// --- Constants ---
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 const { height: screenHeight } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = screenHeight < 700 ? 55 : 65;
@@ -41,7 +39,7 @@ const TAB_SCREENS: {
   component: React.ComponentType<any>;
   title?: string;
 }[] = [
-  { name: "Home", component: HomeStackNavigator, title: "Pulse Technology" },
+  { name: "Home", component: HomeStackNavigator },
   { name: "Sold", component: SoldScreen, title: "Sold Products" },
   { name: "Service", component: ServiceScreen },
   { name: "Settings", component: SettingsScreen },
@@ -102,8 +100,12 @@ export default function BottomTabNavigator() {
           name={name}
           component={component}
           options={{
-            headerTitle: title ?? name,
             headerShown: name !== "Home",
+            ...(name !== "Home" && {
+              header: () => (
+                <CustomHeader title={title ?? name} shadow borderBottom />
+              ),
+            }),
           }}
         />
       ))}
