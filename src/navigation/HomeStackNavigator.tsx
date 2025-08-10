@@ -20,15 +20,13 @@ const HomeStackNavigator = () => {
       screenOptions={{
         headerStyle: {
           backgroundColor: colors.tabBackground,
-          elevation: 0, // remove shadow for Android
-          shadowOpacity: 0, // remove shadow for iOS
         },
         headerTitleStyle: {
           fontSize: 18,
           fontWeight: "600",
           color: colors.text,
         },
-        headerTintColor: colors.primary, // Back button & icons
+        headerTintColor: colors.primary,
         headerTitleAlign: "center",
       }}
     >
