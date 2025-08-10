@@ -1,5 +1,11 @@
-import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ImageSourcePropType,
+} from "react-native";
 import { useThemeContext } from "../theme/ThemeProvider";
 
 type SoldProductCardProps = {
@@ -19,7 +25,11 @@ const SoldProductCard: React.FC<SoldProductCardProps> = ({
   const styles = getStyles(colors);
 
   const placeholder = require("../../assets/placeholder.png");
-  const imageSource = imageUrl ? { uri: imageUrl } : placeholder;
+  const [imgSource, setImgSource] = useState<ImageSourcePropType>(
+    imageUrl ? { uri: imageUrl } : placeholder
+  );
+
+  const handleImageError = () => setImgSource(placeholder);
 
   const formattedDate = soldDate
     ? new Date(soldDate).toLocaleDateString("en-GB", {
@@ -31,7 +41,13 @@ const SoldProductCard: React.FC<SoldProductCardProps> = ({
 
   return (
     <View style={styles.card}>
-      <Image source={imageSource} style={styles.image} resizeMode="cover" />
+      <Image
+        source={imgSource}
+        style={styles.image}
+        resizeMode="cover"
+        onError={handleImageError}
+        accessibilityLabel={`${title} image`}
+      />
 
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>
@@ -55,12 +71,12 @@ const getStyles = (colors: Colors) =>
       backgroundColor: colors.card,
       borderRadius: 12,
       padding: 12,
-      marginVertical: 6,
+      marginBottom: 12,
       shadowColor: colors.shadow,
       shadowOpacity: 0.08,
       shadowRadius: 6,
       shadowOffset: { width: 0, height: 2 },
-      elevation: 4,
+      elevation: 6,
       alignItems: "center",
     },
     image: {
@@ -68,7 +84,7 @@ const getStyles = (colors: Colors) =>
       height: 60,
       borderRadius: 8,
       marginRight: 12,
-      backgroundColor: "#ddd",
+      backgroundColor: colors.imageBackground,
     },
     info: {
       flex: 1,
@@ -76,7 +92,7 @@ const getStyles = (colors: Colors) =>
     },
     title: {
       fontSize: 16,
-      fontWeight: "bold",
+      fontWeight: "600",
       color: colors.text,
       marginBottom: 4,
     },
@@ -89,7 +105,6 @@ const getStyles = (colors: Colors) =>
     meta: {
       fontSize: 13,
       color: colors.text,
-      marginBottom: 2,
     },
     metaValue: {
       color: colors.mutedText,

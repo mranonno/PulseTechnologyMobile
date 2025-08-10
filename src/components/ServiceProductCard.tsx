@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { useThemeContext } from "../theme/ThemeProvider";
 
@@ -13,26 +13,28 @@ type ServiceProductCardProps = {
 const ServiceProductCard: React.FC<ServiceProductCardProps> = ({
   title,
   price,
-  description,
+  description = "N/A",
   imageUrl,
   lastServiceDate,
 }) => {
   const { colors } = useThemeContext();
-  const styles = getStyles(colors);
-  const placeholder = require("../../assets/placeholder.png");
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const formattedDate = lastServiceDate
-    ? new Date(lastServiceDate).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-    : "N/A";
+  const formattedDate = useMemo(() => {
+    if (!lastServiceDate) return "N/A";
+    return new Date(lastServiceDate).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }, [lastServiceDate]);
 
   return (
     <View style={styles.card}>
       <Image
-        source={imageUrl ? { uri: imageUrl } : placeholder}
+        source={
+          imageUrl ? { uri: imageUrl } : require("../../assets/placeholder.png")
+        }
         style={styles.image}
         resizeMode="cover"
       />
@@ -49,28 +51,26 @@ const ServiceProductCard: React.FC<ServiceProductCardProps> = ({
         </Text>
 
         <Text style={styles.meta} numberOfLines={1}>
-          Details:{" "}
-          <Text style={styles.metaValue}>{description?.trim() || "N/A"}</Text>
+          Details: <Text style={styles.metaValue}>{description.trim()}</Text>
         </Text>
       </View>
     </View>
   );
 };
 
-const getStyles = (colors: Colors) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     card: {
       flexDirection: "row",
       backgroundColor: colors.card,
       borderRadius: 12,
       padding: 12,
-      marginVertical: 6,
-      marginHorizontal: 12,
+      marginBottom: 12,
       shadowColor: colors.shadow,
       shadowOpacity: 0.08,
       shadowRadius: 6,
       shadowOffset: { width: 0, height: 2 },
-      elevation: 4,
+      elevation: 12,
       alignItems: "center",
     },
     image: {
@@ -78,7 +78,7 @@ const getStyles = (colors: Colors) =>
       height: 60,
       borderRadius: 8,
       marginRight: 12,
-      backgroundColor: colors.pureWhite,
+      backgroundColor: colors.imageBackground,
     },
     info: {
       flex: 1,

@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
+  FlatList,
+  ListRenderItem,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  FlatList,
-  ListRenderItem,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
@@ -20,26 +21,40 @@ type Service = {
   imageUrl?: string;
 };
 
+// Empty array simulating no services
+const dummyServices: Service[] = [
+  // Uncomment to test with data:
+  {
+    id: "1",
+    title: "AC Repair Service",
+    price: 1500,
+    description: "Includes diagnostics and filter cleaning",
+    lastServiceDate: "2025-08-01",
+  },
+  {
+    id: "2",
+    title: "AC Repair Service",
+    price: 1500,
+    description: "Includes diagnostics and filter cleaning",
+    lastServiceDate: "2025-08-01",
+  },
+  {
+    id: "3",
+    title: "AC Repair Service",
+    price: 1500,
+    description: "Includes diagnostics and filter cleaning",
+    lastServiceDate: "2025-08-01",
+  },
+];
+
 const ServiceScreen = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
 
-  const handleAddServiceItem = () => {
+  const handleAddServiceItem = useCallback(() => {
+    // TODO: Open modal or navigate to add service screen
     console.log("Add new service item");
-  };
-
-  // Dummy services (can be replaced with dynamic data)
-  const services: Service[] = [
-    {
-      id: "1",
-      title: "AC Repair Service",
-      price: 1500,
-      description: "Includes diagnostics and filter cleaning",
-      lastServiceDate: "2025-08-01",
-      // imageUrl: "https://example.com/service/ac-repair.jpg",
-    },
-    // Add more items here as needed
-  ];
+  }, []);
 
   const renderItem: ListRenderItem<Service> = ({ item }) => (
     <ServiceProductCard
@@ -51,30 +66,36 @@ const ServiceScreen = () => {
     />
   );
 
+  const EmptyListComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="cube-outline" size={64} color={colors.mutedText} />
+      <Text style={styles.emptyText}>No service items available</Text>
+    </View>
+  );
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <FlatList
-        data={services}
+        data={dummyServices}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={
-          services.length === 0 ? styles.emptyContainer : styles.listContent
-        }
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No service available</Text>
-        }
+        ListEmptyComponent={EmptyListComponent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={
+          dummyServices.length === 0 ? styles.emptyWrapper : styles.listContent
+        }
       />
 
-      {/* Floating Add Button */}
       <TouchableOpacity
         activeOpacity={0.7}
         style={styles.fab}
         onPress={handleAddServiceItem}
+        accessibilityRole="button"
+        accessibilityLabel="Add new service item"
       >
         <Ionicons name="add" size={28} color={colors.pureWhite} />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -87,16 +108,24 @@ const getStyles = (colors: any) =>
       backgroundColor: colors.background,
     },
     listContent: {
-      paddingVertical: 16,
+      padding: 16,
+
+      paddingBottom: 80,
     },
-    emptyContainer: {
+    emptyWrapper: {
       flexGrow: 1,
       justifyContent: "center",
+      alignItems: "center",
+      padding: 24,
+    },
+    emptyContainer: {
       alignItems: "center",
     },
     emptyText: {
       fontSize: 16,
-      color: colors.textSecondary,
+      color: colors.mutedText,
+      textAlign: "center",
+      marginTop: 12,
     },
     fab: {
       position: "absolute",
@@ -108,10 +137,10 @@ const getStyles = (colors: any) =>
       borderRadius: 28,
       justifyContent: "center",
       alignItems: "center",
-      elevation: 5,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
       shadowRadius: 4,
+      elevation: 5,
     },
   });
