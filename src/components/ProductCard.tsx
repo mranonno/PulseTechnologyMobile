@@ -51,14 +51,14 @@ const ProductCard: React.FC<ProductCardProps> = memo(
           </Text>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailText}>Date: {formattedDate}</Text>
+            <Text style={styles.detailText}>Listed on: {formattedDate}</Text>
             <Text style={styles.detailText}>
               Stock: {stock !== undefined ? stock : "N/A"}
             </Text>
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.priceText}>Price: ${price.toFixed(2)}</Text>
+            <Text style={styles.priceText}>৳{price.toFixed(2)}</Text>
           </View>
         </View>
 
