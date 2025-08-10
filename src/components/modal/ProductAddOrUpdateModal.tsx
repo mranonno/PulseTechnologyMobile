@@ -12,16 +12,19 @@ import {
   Text,
   TextInput,
   View,
-  KeyboardAvoidingView,
-  Platform,
   TouchableOpacity,
   Alert,
+  Image,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import {
   BottomSheetModal,
   BottomSheetScrollView,
   BottomSheetBackdrop,
 } from "@gorhom/bottom-sheet";
+import * as ImagePicker from "expo-image-picker";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useThemeContext } from "../../theme/ThemeProvider";
 
 interface Product {
@@ -29,202 +32,252 @@ interface Product {
   name: string;
   price: number;
   stock: number;
-  listingDate: string; // ISO string
   image?: string;
 }
 
-interface ProductAddOrUpdateModalProps {
-  product?: Product; // if present, modal is update mode
+interface Props {
+  product?: Product;
   onSubmit: (product: Product) => void;
   onDismiss: () => void;
 }
 
-const ProductAddOrUpdateModal = forwardRef<
-  BottomSheetModal,
-  ProductAddOrUpdateModalProps
->(({ product, onSubmit, onDismiss }, ref) => {
-  const { colors } = useThemeContext();
-  const styles = getStyles(colors);
+const SNAP_POINTS = ["55%"];
 
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ["52%"], []);
+const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
+  ({ product, onSubmit, onDismiss }, ref) => {
+    const { colors } = useThemeContext();
+    const styles = useMemo(() => getStyles(colors), [colors]);
 
-  // Expose present/dismiss methods to parent
-  useImperativeHandle(ref, () => bottomSheetModalRef.current!);
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const snapPoints = useMemo(() => SNAP_POINTS, []);
 
-  // Form state
-  const [productName, setProductName] = useState(product?.name || "");
-  const [price, setPrice] = useState(product?.price.toString() || "");
-  const [stock, setStock] = useState(product?.stock.toString() || "");
-  const [listingDate, setListingDate] = useState(
-    product?.listingDate
-      ? new Date(product.listingDate).toISOString().slice(0, 10)
-      : new Date().toISOString().slice(0, 10)
-  );
+    useImperativeHandle(ref, () => bottomSheetModalRef.current!);
 
-  // When product changes, reset form state & open modal
-  useEffect(() => {
-    setProductName(product?.name || "");
-    setPrice(product?.price?.toString() || "");
-    setStock(product?.stock?.toString() || "");
-    setListingDate(
-      product?.listingDate
-        ? new Date(product.listingDate).toISOString().slice(0, 10)
-        : new Date().toISOString().slice(0, 10)
-    );
-  }, [product]);
+    const [productName, setProductName] = useState("");
+    const [price, setPrice] = useState("");
+    const [stock, setStock] = useState("");
+    const [imageUri, setImageUri] = useState<string | null>(null);
 
-  // Reset form on dismiss
-  const handleDismiss = useCallback(() => {
-    onDismiss();
-    setProductName("");
-    setPrice("");
-    setStock("");
-    setListingDate(new Date().toISOString().slice(0, 10));
-  }, [onDismiss]);
+    const resetForm = useCallback(() => {
+      setProductName("");
+      setPrice("");
+      setStock("");
+      setImageUri(null);
+    }, []);
 
-  // Validate and submit
-  const handleSubmit = useCallback(() => {
-    if (!productName.trim()) {
-      Alert.alert("Validation", "Please enter a product name.");
-      return;
-    }
-    const priceNum = parseFloat(price);
-    if (isNaN(priceNum) || priceNum < 0) {
-      Alert.alert("Validation", "Please enter a valid positive price.");
-      return;
-    }
-    const stockNum = parseInt(stock, 10);
-    if (isNaN(stockNum) || stockNum < 0) {
-      Alert.alert("Validation", "Please enter a valid non-negative stock.");
-      return;
-    }
-    if (!listingDate) {
-      Alert.alert("Validation", "Please enter a listing date.");
-      return;
-    }
+    useEffect(() => {
+      if (product) {
+        setProductName(product.name);
+        setPrice(product.price.toString());
+        setStock(product.stock.toString());
+        setImageUri(product.image ?? null);
+      } else {
+        resetForm();
+      }
+    }, [product, resetForm]);
 
-    onSubmit({
-      id: product?.id,
-      name: productName.trim(),
-      price: priceNum,
-      stock: stockNum,
-      listingDate,
-      image: product?.image,
-    });
+    const handleDismiss = useCallback(() => {
+      onDismiss();
+      resetForm();
+    }, [onDismiss, resetForm]);
 
-    bottomSheetModalRef.current?.dismiss();
-  }, [
-    productName,
-    price,
-    stock,
-    listingDate,
-    onSubmit,
-    product?.id,
-    product?.image,
-  ]);
+    const pickImage = useCallback(async (source: "gallery" | "camera") => {
+      try {
+        const permissionFn =
+          source === "gallery"
+            ? ImagePicker.requestMediaLibraryPermissionsAsync
+            : ImagePicker.requestCameraPermissionsAsync;
 
-  return (
-    <BottomSheetModal
-      ref={bottomSheetModalRef}
-      snapPoints={snapPoints}
-      enablePanDownToClose
-      onDismiss={handleDismiss}
-      enableDynamicSizing={false}
-      handleIndicatorStyle={styles.handleBar}
-      style={{ zIndex: 10 }}
-      backgroundStyle={{ backgroundColor: colors.card, borderRadius: 24 }}
-      backdropComponent={({ animatedIndex, animatedPosition }) => (
+        const { status } = await permissionFn();
+        if (status !== "granted") {
+          Alert.alert("Permission Required", `Please allow ${source} access.`);
+          return;
+        }
+
+        const picker =
+          source === "gallery"
+            ? ImagePicker.launchImageLibraryAsync
+            : ImagePicker.launchCameraAsync;
+
+        const result = await picker({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 0.8,
+          allowsEditing: true,
+          aspect: [4, 3],
+        });
+
+        if (!result.canceled && result.assets?.[0]?.uri) {
+          setImageUri(result.assets[0].uri);
+        }
+      } catch (error) {
+        console.error("Error picking image:", error);
+        Alert.alert("Error", "Failed to pick image. Please try again.");
+      }
+    }, []);
+
+    const handleSubmit = useCallback(() => {
+      if (!productName.trim()) {
+        return Alert.alert("Validation", "Please enter a product name.");
+      }
+
+      const priceNum = parseFloat(price);
+      if (isNaN(priceNum) || priceNum < 0) {
+        return Alert.alert(
+          "Validation",
+          "Please enter a valid positive price."
+        );
+      }
+
+      const stockNum = parseInt(stock, 10);
+      if (isNaN(stockNum) || stockNum < 0) {
+        return Alert.alert(
+          "Validation",
+          "Please enter a valid non-negative stock."
+        );
+      }
+
+      onSubmit({
+        id: product?.id,
+        name: productName.trim(),
+        price: priceNum,
+        stock: stockNum,
+        image: imageUri ?? undefined,
+      });
+
+      bottomSheetModalRef.current?.dismiss();
+    }, [productName, price, stock, imageUri, onSubmit, product?.id]);
+
+    const backdropComponent = useCallback(
+      (props: any) => (
         <BottomSheetBackdrop
+          {...props}
           disappearsOnIndex={-1}
           appearsOnIndex={0}
-          animatedIndex={animatedIndex}
-          animatedPosition={animatedPosition}
           pressBehavior="close"
         />
-      )}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.select({ ios: "padding", android: undefined })}
-        style={{ flex: 1 }}
+      ),
+      []
+    );
+
+    const backgroundStyle = useMemo(
+      () => ({ backgroundColor: colors.card, borderRadius: 24 }),
+      [colors.card]
+    );
+
+    const handleIndicatorStyle = useMemo(
+      () => ({ backgroundColor: colors.primary, width: 50 }),
+      [colors.primary]
+    );
+
+    const keyboardAvoidingViewStyle = useMemo(() => ({ flex: 1 }), []);
+
+    return (
+      <BottomSheetModal
+        ref={bottomSheetModalRef}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        onDismiss={handleDismiss}
+        enableDynamicSizing={false}
+        keyboardBlurBehavior="restore"
+        handleIndicatorStyle={handleIndicatorStyle}
+        backgroundStyle={backgroundStyle}
+        backdropComponent={backdropComponent}
       >
-        <BottomSheetScrollView
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.container}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={keyboardAvoidingViewStyle}
         >
-          <Text style={styles.title}>
-            {product ? "Update Product" : "Add Product"}
-          </Text>
-
-          <TextInput
-            placeholder="Name"
-            value={productName}
-            onChangeText={setProductName}
-            placeholderTextColor={colors.placeholder}
-            style={styles.input}
-          />
-
-          <TextInput
-            placeholder="Price"
-            value={price}
-            onChangeText={setPrice}
-            placeholderTextColor={colors.placeholder}
-            keyboardType="decimal-pad"
-            style={styles.input}
-          />
-
-          <TextInput
-            placeholder="Stock"
-            value={stock}
-            onChangeText={setStock}
-            placeholderTextColor={colors.placeholder}
-            keyboardType="number-pad"
-            style={styles.input}
-          />
-
-          <TextInput
-            placeholder="Listing Date (YYYY-MM-DD)"
-            value={listingDate}
-            onChangeText={setListingDate}
-            placeholderTextColor={colors.placeholder}
-            style={styles.input}
-          />
-
-          <View style={styles.buttonsContainer}>
+          <BottomSheetScrollView
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="always"
+            contentContainerStyle={styles.container}
+          >
+            <Text style={styles.title}>
+              {product ? "Update Product" : "Add Product"}
+            </Text>
+            <TextInput
+              placeholder="Name"
+              value={productName}
+              onChangeText={setProductName}
+              placeholderTextColor={colors.placeholder}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Price"
+              value={price}
+              onChangeText={setPrice}
+              placeholderTextColor={colors.placeholder}
+              keyboardType="decimal-pad"
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Stock"
+              value={stock}
+              onChangeText={setStock}
+              placeholderTextColor={colors.placeholder}
+              keyboardType="number-pad"
+              style={styles.input}
+            />
+            <View style={styles.imageContainer}>
+              {imageUri ? (
+                <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+              ) : (
+                <Text style={styles.noImageText}>No image selected</Text>
+              )}
+              <View style={styles.imageButtons}>
+                <TouchableOpacity
+                  style={styles.imageButton}
+                  onPress={() => pickImage("gallery")}
+                  activeOpacity={0.6}
+                >
+                  <FontAwesome
+                    name="image"
+                    size={28}
+                    color={colors.placeholder}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.6}
+                  style={styles.imageButton}
+                  onPress={() => pickImage("camera")}
+                >
+                  <FontAwesome
+                    name="camera"
+                    size={28}
+                    color={colors.placeholder}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
             <TouchableOpacity
+              activeOpacity={0.7}
               onPress={handleSubmit}
-              style={[styles.button, { backgroundColor: colors.primary }]}
+              style={styles.submitButton}
               accessibilityRole="button"
               accessibilityLabel={product ? "Update product" : "Add product"}
             >
-              <Text style={[styles.buttonText, { color: colors.pureWhite }]}>
-                {product ? "Update" : "Add"}
+              <Text style={styles.buttonText}>
+                {product ? "Update Product" : "Add Product"}
               </Text>
             </TouchableOpacity>
-          </View>
-        </BottomSheetScrollView>
-      </KeyboardAvoidingView>
-    </BottomSheetModal>
-  );
-});
+          </BottomSheetScrollView>
+        </KeyboardAvoidingView>
+      </BottomSheetModal>
+    );
+  }
+);
+
+// Add display name for better debugging
+ProductAddOrUpdateModal.displayName = "ProductAddOrUpdateModal";
 
 export default ProductAddOrUpdateModal;
 
-const getStyles = (colors: Colors) =>
+const getStyles = (colors: any) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 20,
-      paddingBottom: 40,
+      paddingBottom: 20,
       flexGrow: 1,
-    },
-    handleBar: {
-      backgroundColor: colors.mutedText,
-      width: 40,
-      height: 5,
-      borderRadius: 3,
-      alignSelf: "center",
-      marginVertical: 10,
     },
     title: {
       fontSize: 22,
@@ -243,20 +296,40 @@ const getStyles = (colors: Colors) =>
       fontSize: 15,
       backgroundColor: colors.card,
     },
-    buttonsContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: 16,
+    imageContainer: {
+      marginBottom: 16,
     },
-    button: {
-      flex: 1,
-      marginHorizontal: 4,
+    imagePreview: {
+      width: 80,
+      height: 80,
+      borderRadius: 8,
+      marginBottom: 8,
+    },
+    noImageText: {
+      color: colors.placeholder,
+      marginBottom: 8,
+    },
+    imageButtons: {
+      flexDirection: "row",
+      gap: 10,
+      marginTop: 8,
+    },
+    imageButton: {
+      padding: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.placeholder,
+    },
+    submitButton: {
       paddingVertical: 14,
       borderRadius: 10,
       alignItems: "center",
+      marginTop: 16,
+      backgroundColor: colors.primary,
     },
     buttonText: {
       fontSize: 16,
       fontWeight: "600",
+      color: colors.pureWhite,
     },
   });
