@@ -34,6 +34,7 @@ interface Product {
   price: number;
   stock: number;
   image?: string;
+  createAt?: string;
 }
 
 interface Props {

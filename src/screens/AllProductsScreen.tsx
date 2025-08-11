@@ -21,15 +21,7 @@ import { useThemeContext } from "../theme/ThemeProvider";
 import ProductCard from "../components/ProductCard";
 import ProductAddOrUpdateModal from "../components/modal/ProductAddOrUpdateModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-
-interface Product {
-  id?: string;
-  name: string;
-  price: number;
-  stock: number;
-  listingDate: string; // ISO string
-  image?: string;
-}
+import { Product } from "../types/types";
 
 const initialProducts: Product[] = [
   {
@@ -38,7 +30,7 @@ const initialProducts: Product[] = [
     price: 1200,
     image: "https://i.ibb.co/5GzXkwq/user-placeholder.png",
     stock: 3,
-    listingDate: "2025-08-01T00:00:00Z",
+    createAt: "2025-08-01T00:00:00Z",
   },
   {
     id: "2",
@@ -46,7 +38,7 @@ const initialProducts: Product[] = [
     price: 3200,
     image: "https://i.ibb.co/5GzXkwq/user-placeholder.png",
     stock: 16,
-    listingDate: "2025-08-01T00:00:00Z",
+    createAt: "2025-08-01T00:00:00Z",
   },
 ];
 
@@ -147,11 +139,7 @@ const AllProductsScreen = () => {
           keyboardDismissMode="on-drag"
           renderItem={({ item }) => (
             <ProductCard
-              image={item.image}
-              name={item.name}
-              price={item.price}
-              stock={item.stock}
-              listingDate={item.listingDate}
+              product={item}
               onEdit={() => openEditModal(item)}
               onDelete={() => handleDelete(item.id!)}
             />

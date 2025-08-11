@@ -9,57 +9,48 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
+import { Product } from "../types/types";
+import { formatDate } from "../utils/commonFunction";
 
 interface ProductCardProps {
-  image?: string;
-  name: string;
-  price: number;
-  stock?: number;
-  listingDate?: string; // ISO string
+  product: Product;
   onEdit: (event: GestureResponderEvent) => void;
   onDelete: (event: GestureResponderEvent) => void;
 }
 
-const placeholderImage = "https://via.placeholder.com/80?text=No+Image";
-
 const ProductCard: React.FC<ProductCardProps> = memo(
-  ({ image, name, price, stock, listingDate, onEdit, onDelete }) => {
+  ({ product, onEdit, onDelete }) => {
     const { colors } = useThemeContext();
     const styles = getStyles(colors);
-    const formattedDate = listingDate
-      ? new Date(listingDate).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })
-      : "N/A";
+    const placeholder = require("../../assets/placeholder.png");
 
     return (
       <View style={styles.card}>
         {/* Image */}
         <Image
-          source={{ uri: image || placeholderImage }}
+          source={product.image ? { uri: product.image } : placeholder}
           style={styles.image}
           resizeMode="cover"
-          defaultSource={{ uri: placeholderImage }}
         />
 
         {/* Main Info */}
         <View style={styles.infoContainer}>
           <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
-            {name}
+            {product.name}
           </Text>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailText}>Listed on: {formattedDate}</Text>
             <Text style={styles.detailText}>
-              Stock: {stock !== undefined ? stock : "N/A"}
+              Listed on:{formatDate(product.createAt)}
+            </Text>
+            <Text style={styles.detailText}>
+              Stock: {product.stock !== undefined ? product.stock : "N/A"}
             </Text>
           </View>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceText}>৳{price.toFixed(2)}</Text>
-          </View>
+          <Text style={styles.priceText}>
+            ৳{product.price !== undefined ? product.price.toFixed(2) : "0.00"}
+          </Text>
         </View>
 
         {/* Action Icons */}
@@ -69,7 +60,7 @@ const ProductCard: React.FC<ProductCardProps> = memo(
             style={styles.iconButton}
             activeOpacity={0.6}
             accessibilityRole="button"
-            accessibilityLabel={`Edit product ${name}`}
+            accessibilityLabel={`Edit product ${product.name}`}
           >
             <Ionicons name="create-outline" size={24} color={colors.primary} />
           </TouchableOpacity>
@@ -78,7 +69,7 @@ const ProductCard: React.FC<ProductCardProps> = memo(
             style={styles.iconButton}
             activeOpacity={0.6}
             accessibilityRole="button"
-            accessibilityLabel={`Delete product ${name}`}
+            accessibilityLabel={`Delete product ${product.name}`}
           >
             <Ionicons name="trash-outline" size={24} color={colors.danger} />
           </TouchableOpacity>
@@ -88,7 +79,7 @@ const ProductCard: React.FC<ProductCardProps> = memo(
   }
 );
 
-const getStyles = (colors: Colors) =>
+const getStyles = (colors: any) =>
   StyleSheet.create({
     card: {
       flexDirection: "row",
@@ -122,7 +113,6 @@ const getStyles = (colors: Colors) =>
     },
     detailsRow: {
       flexDirection: "row",
-      gap: 12,
     },
     priceRow: {
       marginTop: 6,
@@ -130,6 +120,7 @@ const getStyles = (colors: Colors) =>
     detailText: {
       fontSize: 12,
       color: colors.mutedText,
+      marginRight: 12,
     },
     priceText: {
       fontSize: 14,
