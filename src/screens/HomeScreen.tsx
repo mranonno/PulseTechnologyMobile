@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons"; // or any other icon set
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../navigation/HomeStackNavigator";
+import CustomInputField from "../components/ui/CustomInputField";
 
 const HomeScreen = () => {
   const { colors } = useThemeContext();

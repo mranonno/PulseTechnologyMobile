@@ -1,4 +1,3 @@
-// App.tsx
 import "react-native-reanimated";
 import "react-native-gesture-handler";
 
@@ -14,13 +13,13 @@ import Main from "./src/_layout/Main";
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
-      <BottomSheetModalProvider>
-        <SafeAreaProvider>
-          <ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <BottomSheetModalProvider>
             <Main />
-          </ThemeProvider>
-        </SafeAreaProvider>
-      </BottomSheetModalProvider>
+          </BottomSheetModalProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

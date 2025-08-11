@@ -10,7 +10,6 @@ import React, {
 import {
   StyleSheet,
   Text,
-  TextInput,
   View,
   TouchableOpacity,
   Alert,
@@ -25,7 +24,9 @@ import {
 } from "@gorhom/bottom-sheet";
 import * as ImagePicker from "expo-image-picker";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useThemeContext } from "../../theme/ThemeProvider";
+import CustomInputField from "../ui/CustomInputField";
 
 interface Product {
   id?: string;
@@ -41,15 +42,12 @@ interface Props {
   onDismiss: () => void;
 }
 
-const SNAP_POINTS = ["55%"];
-
 const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
   ({ product, onSubmit, onDismiss }, ref) => {
     const { colors } = useThemeContext();
     const styles = useMemo(() => getStyles(colors), [colors]);
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-    const snapPoints = useMemo(() => SNAP_POINTS, []);
 
     useImperativeHandle(ref, () => bottomSheetModalRef.current!);
 
@@ -100,7 +98,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
             : ImagePicker.launchCameraAsync;
 
         const result = await picker({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ["images"],
           quality: 0.8,
           allowsEditing: true,
           aspect: [4, 3],
@@ -169,15 +167,11 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
       [colors.primary]
     );
 
-    const keyboardAvoidingViewStyle = useMemo(() => ({ flex: 1 }), []);
-
     return (
       <BottomSheetModal
         ref={bottomSheetModalRef}
-        snapPoints={snapPoints}
         enablePanDownToClose
         onDismiss={handleDismiss}
-        enableDynamicSizing={false}
         keyboardBlurBehavior="restore"
         handleIndicatorStyle={handleIndicatorStyle}
         backgroundStyle={backgroundStyle}
@@ -185,55 +179,45 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={keyboardAvoidingViewStyle}
+          style={{ flex: 1 }}
         >
           <BottomSheetScrollView
             keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="always"
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.container}
           >
             <Text style={styles.title}>
               {product ? "Update Product" : "Add Product"}
             </Text>
-            <TextInput
+            <CustomInputField
               placeholder="Name"
               value={productName}
               onChangeText={setProductName}
-              placeholderTextColor={colors.placeholder}
-              style={styles.input}
             />
-            <TextInput
+            <CustomInputField
               placeholder="Price"
               value={price}
               onChangeText={setPrice}
-              placeholderTextColor={colors.placeholder}
               keyboardType="decimal-pad"
-              style={styles.input}
             />
-            <TextInput
+            <CustomInputField
               placeholder="Stock"
               value={stock}
               onChangeText={setStock}
-              placeholderTextColor={colors.placeholder}
               keyboardType="number-pad"
-              style={styles.input}
             />
             <View style={styles.imageContainer}>
-              {imageUri ? (
-                <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-              ) : (
-                <Text style={styles.noImageText}>No image selected</Text>
-              )}
               <View style={styles.imageButtons}>
                 <TouchableOpacity
                   style={styles.imageButton}
                   onPress={() => pickImage("gallery")}
                   activeOpacity={0.6}
                 >
-                  <FontAwesome
-                    name="image"
-                    size={28}
+                  <MaterialIcons
+                    name="add-photo-alternate"
+                    size={34}
                     color={colors.placeholder}
+                    style={{ transform: [{ scaleX: -1 }] }}
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -241,14 +225,29 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
                   style={styles.imageButton}
                   onPress={() => pickImage("camera")}
                 >
-                  <FontAwesome
-                    name="camera"
-                    size={28}
+                  <MaterialIcons
+                    name="add-a-photo"
+                    size={30}
                     color={colors.placeholder}
                   />
                 </TouchableOpacity>
+                {imageUri ? (
+                  <Image
+                    source={{ uri: imageUri }}
+                    style={styles.imagePreview}
+                  />
+                ) : (
+                  <View style={styles.dashedPlaceholder}>
+                    <FontAwesome
+                      name="image"
+                      size={32}
+                      color={colors.placeholder}
+                    />
+                  </View>
+                )}
               </View>
             </View>
+
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={handleSubmit}
@@ -286,28 +285,26 @@ const getStyles = (colors: any) =>
       marginBottom: 20,
       alignSelf: "center",
     },
-    input: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 10,
-      padding: 12,
-      marginBottom: 12,
-      color: colors.text,
-      fontSize: 15,
-      backgroundColor: colors.card,
-    },
     imageContainer: {
       marginBottom: 16,
     },
     imagePreview: {
-      width: 80,
-      height: 80,
+      width: 60,
+      height: 60,
       borderRadius: 8,
       marginBottom: 8,
+      marginLeft: 20,
     },
-    noImageText: {
-      color: colors.placeholder,
-      marginBottom: 8,
+    dashedPlaceholder: {
+      width: 60,
+      height: 60,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: colors.placeholder,
+      borderStyle: "dashed",
+      justifyContent: "center",
+      alignItems: "center",
+      marginLeft: 20,
     },
     imageButtons: {
       flexDirection: "row",
@@ -315,7 +312,10 @@ const getStyles = (colors: any) =>
       marginTop: 8,
     },
     imageButton: {
-      padding: 12,
+      justifyContent: "center",
+      alignItems: "center",
+      height: 60,
+      width: 60,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.placeholder,
