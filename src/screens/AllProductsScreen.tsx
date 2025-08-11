@@ -47,6 +47,7 @@ const AllProductsScreen = () => {
   const styles = getStyles(colors);
 
   const modalRef = useRef<BottomSheetModal>(null);
+
   const [products, setProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [loading, setLoading] = useState(false);
@@ -198,6 +199,7 @@ const AllProductsScreen = () => {
         product={editingProduct}
         onSubmit={handleSubmit}
         onDismiss={() => modalRef.current?.dismiss()}
+        loading={loading}
       />
     </View>
   );

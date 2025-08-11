@@ -16,6 +16,7 @@ import {
   Image,
   Platform,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
 import {
   BottomSheetModal,
@@ -33,18 +34,19 @@ interface Props {
   product?: Product;
   onSubmit: (product: Product) => void;
   onDismiss: () => void;
+  loading: boolean;
 }
 
 const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
-  ({ product, onSubmit, onDismiss }, ref) => {
+  ({ product, onSubmit, onDismiss, loading }, ref) => {
     const { colors } = useThemeContext();
     const styles = useMemo(() => getStyles(colors), [colors]);
-
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
     useImperativeHandle(ref, () => bottomSheetModalRef.current!);
 
     const [productName, setProductName] = useState("");
+    const [productModel, setProductModel] = useState("");
     const [price, setPrice] = useState("");
     const [quantity, setQuantity] = useState("");
     const [description, setDescription] = useState("");
@@ -54,6 +56,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
 
     const resetForm = useCallback(() => {
       setProductName("");
+      setProductModel("");
       setPrice("");
       setQuantity("");
       setDescription("");
@@ -63,6 +66,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
     useEffect(() => {
       if (product) {
         setProductName(product.name);
+        setProductModel(product.model);
         setPrice(product.price.toString());
         setQuantity(product.quantity.toString());
         setDescription(product.description ?? "");
@@ -122,6 +126,10 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
         return Alert.alert("Validation", "Please enter a product name.");
       }
 
+      if (!productModel.trim()) {
+        return Alert.alert("Validation", "Please enter a product model.");
+      }
+
       const priceNum = parseFloat(price);
       if (isNaN(priceNum) || priceNum < 0) {
         return Alert.alert(
@@ -138,16 +146,10 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
         );
       }
 
-      // if (!description.trim() || description.trim().length < 10) {
-      //   return Alert.alert(
-      //     "Validation",
-      //     "Please enter a description of at least 10 characters."
-      //   );
-      // }
-
       onSubmit({
         id: product?.id,
         name: productName.trim(),
+        model: productModel.trim(),
         price: priceNum,
         quantity: stockNum,
         description: description.trim() || "",
@@ -157,6 +159,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
       bottomSheetModalRef.current?.dismiss();
     }, [
       productName,
+      productModel,
       price,
       quantity,
       description,
@@ -209,32 +212,49 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
             <Text style={styles.title}>
               {product ? "Update Product" : "Add Product"}
             </Text>
+
             <CustomInputField
-              placeholder="Name"
+              required
+              label="Product Name"
+              placeholder="e.g. Patient Monitor"
               value={productName}
               onChangeText={setProductName}
             />
             <CustomInputField
-              placeholder="Price"
+              required
+              label="Product Model"
+              placeholder="e.g. WH-1000XM4"
+              value={productModel}
+              onChangeText={setProductModel}
+            />
+            <CustomInputField
+              required
+              label="Price"
+              placeholder="e.g. 99.99"
               value={price}
               onChangeText={setPrice}
               keyboardType="decimal-pad"
             />
             <CustomInputField
-              placeholder="Stock"
+              required
+              label="Quantity"
+              placeholder="e.g. 50"
               value={quantity}
               onChangeText={setQuantity}
               keyboardType="number-pad"
             />
             <CustomInputField
-              placeholder="Optional description..."
+              label="Description"
+              placeholder="e.g. ECG, SpO2, NIBP monitor"
               value={description}
               onChangeText={setDescription}
               multiline={true}
               numberOfLines={4}
               style={{ textAlignVertical: "top", height: 80 }}
             />
+
             <View style={styles.imageContainer}>
+              <Text style={styles.imageLabel}>Select Image</Text>
               <View style={styles.imageButtons}>
                 <TouchableOpacity
                   style={styles.imageButton}
@@ -284,10 +304,15 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
               style={styles.submitButton}
               accessibilityRole="button"
               accessibilityLabel={product ? "Update product" : "Add product"}
+              disabled={loading}
             >
-              <Text style={styles.buttonText}>
-                {product ? "Update Product" : "Add Product"}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color={colors.pureWhite} />
+              ) : (
+                <Text style={styles.buttonText}>
+                  {product ? "Update Product" : "Add Product"}
+                </Text>
+              )}
             </TouchableOpacity>
           </BottomSheetScrollView>
         </KeyboardAvoidingView>
@@ -317,6 +342,13 @@ const getStyles = (colors: any) =>
     imageContainer: {
       marginBottom: 16,
     },
+    imageLabel: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+      marginBottom: 4,
+    },
+
     imagePreview: {
       width: 60,
       height: 60,
@@ -338,7 +370,6 @@ const getStyles = (colors: any) =>
     imageButtons: {
       flexDirection: "row",
       gap: 10,
-      marginTop: 8,
     },
     imageButton: {
       justifyContent: "center",
