@@ -1,8 +1,15 @@
+// types.ts
 export interface Product {
   id?: string;
   name: string;
+  description: string;
   price: number;
-  stock: number;
-  createAt?: string;
-  image?: string;
+  quantity: number;
+  image?: string | { uri: string; name?: string; type?: string };
+  createdAt?: string;
+}
+export interface GetAllProductsResponse {
+  message: string;
+  products: Product[];
+  total: number;
 }

@@ -27,15 +27,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useThemeContext } from "../../theme/ThemeProvider";
 import CustomInputField from "../ui/CustomInputField";
-
-interface Product {
-  id?: string;
-  name: string;
-  price: number;
-  stock: number;
-  image?: string;
-  createAt?: string;
-}
+import { Product } from "../../types/types";
 
 interface Props {
   product?: Product;
@@ -54,22 +46,27 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
 
     const [productName, setProductName] = useState("");
     const [price, setPrice] = useState("");
-    const [stock, setStock] = useState("");
-    const [imageUri, setImageUri] = useState<string | null>(null);
+    const [quantity, setQuantity] = useState("");
+    const [description, setDescription] = useState("");
+    const [image, setImage] = useState<
+      null | string | { uri: string; name?: string; type?: string }
+    >(null);
 
     const resetForm = useCallback(() => {
       setProductName("");
       setPrice("");
-      setStock("");
-      setImageUri(null);
+      setQuantity("");
+      setDescription("");
+      setImage(null);
     }, []);
 
     useEffect(() => {
       if (product) {
         setProductName(product.name);
         setPrice(product.price.toString());
-        setStock(product.stock.toString());
-        setImageUri(product.image ?? null);
+        setQuantity(product.quantity.toString());
+        setDescription(product.description ?? "");
+        setImage(product.image ?? null);
       } else {
         resetForm();
       }
@@ -106,11 +103,17 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
         });
 
         if (!result.canceled && result.assets?.[0]?.uri) {
-          setImageUri(result.assets[0].uri);
+          const asset = result.assets[0];
+          const uri = asset.uri!;
+          const filename = uri.split("/").pop() || "photo.jpg";
+          const match = /\.(\w+)$/.exec(filename);
+          const type = `image/${match ? match[1] : "jpeg"}`;
+
+          setImage({ uri, name: filename, type });
         }
       } catch (error) {
         console.error("Error picking image:", error);
-        Alert.alert("Error", "Failed to pick image. Please try again.");
+        Alert.alert("Error", "Failed to pick image.");
       }
     }, []);
 
@@ -127,7 +130,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
         );
       }
 
-      const stockNum = parseInt(stock, 10);
+      const stockNum = parseInt(quantity, 10);
       if (isNaN(stockNum) || stockNum < 0) {
         return Alert.alert(
           "Validation",
@@ -135,16 +138,32 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
         );
       }
 
+      // if (!description.trim() || description.trim().length < 10) {
+      //   return Alert.alert(
+      //     "Validation",
+      //     "Please enter a description of at least 10 characters."
+      //   );
+      // }
+
       onSubmit({
         id: product?.id,
         name: productName.trim(),
         price: priceNum,
-        stock: stockNum,
-        image: imageUri ?? undefined,
+        quantity: stockNum,
+        description: description.trim() || "",
+        image: image ?? undefined,
       });
 
       bottomSheetModalRef.current?.dismiss();
-    }, [productName, price, stock, imageUri, onSubmit, product?.id]);
+    }, [
+      productName,
+      price,
+      quantity,
+      description,
+      image,
+      onSubmit,
+      product?.id,
+    ]);
 
     const backdropComponent = useCallback(
       (props: any) => (
@@ -203,9 +222,17 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
             />
             <CustomInputField
               placeholder="Stock"
-              value={stock}
-              onChangeText={setStock}
+              value={quantity}
+              onChangeText={setQuantity}
               keyboardType="number-pad"
+            />
+            <CustomInputField
+              placeholder="Optional description..."
+              value={description}
+              onChangeText={setDescription}
+              multiline={true}
+              numberOfLines={4}
+              style={{ textAlignVertical: "top", height: 80 }}
             />
             <View style={styles.imageContainer}>
               <View style={styles.imageButtons}>
@@ -232,9 +259,11 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
                     color={colors.placeholder}
                   />
                 </TouchableOpacity>
-                {imageUri ? (
+                {typeof image === "string" || (image && "uri" in image) ? (
                   <Image
-                    source={{ uri: imageUri }}
+                    source={{
+                      uri: typeof image === "string" ? image : image.uri,
+                    }}
                     style={styles.imagePreview}
                   />
                 ) : (
@@ -267,7 +296,6 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
   }
 );
 
-// Add display name for better debugging
 ProductAddOrUpdateModal.displayName = "ProductAddOrUpdateModal";
 
 export default ProductAddOrUpdateModal;

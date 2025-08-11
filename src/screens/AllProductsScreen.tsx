@@ -1,9 +1,9 @@
 import React, {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
+  useEffect,
 } from "react";
 import {
   Alert,
@@ -12,8 +12,7 @@ import {
   TextInput,
   View,
   Text,
-  Keyboard,
-  TouchableWithoutFeedback,
+  ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,27 +21,13 @@ import ProductCard from "../components/ProductCard";
 import ProductAddOrUpdateModal from "../components/modal/ProductAddOrUpdateModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Product } from "../types/types";
+import {
+  getAllProducts,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+} from "../services/productService";
 
-const initialProducts: Product[] = [
-  {
-    id: "1",
-    name: "BMC G3 A20 Auto CPAP Machine",
-    price: 1200,
-    image: "https://i.ibb.co/5GzXkwq/user-placeholder.png",
-    stock: 3,
-    createAt: "2025-08-01T00:00:00Z",
-  },
-  {
-    id: "2",
-    name: "Digital Blood Pressure Monitor",
-    price: 3200,
-    image: "https://i.ibb.co/5GzXkwq/user-placeholder.png",
-    stock: 16,
-    createAt: "2025-08-01T00:00:00Z",
-  },
-];
-
-// Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -52,52 +37,87 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+const normalizeProduct = (p: any): Product => ({
+  ...p,
+  id: p._id,
+});
+
 const AllProductsScreen = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
 
   const modalRef = useRef<BottomSheetModal>(null);
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
+  const [loading, setLoading] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const filteredProducts = useMemo(() => {
     const q = debouncedSearchQuery.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter((p) => p.name.toLowerCase().includes(q));
+    return q
+      ? products.filter((p) => (p.name || "").toLowerCase().includes(q))
+      : products;
   }, [debouncedSearchQuery, products]);
 
-  const openAddModal = () => {
-    setEditingProduct(null);
-    modalRef.current?.present();
-  };
+  const fetchAllProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await getAllProducts();
+      const normalized = (response.products || []).map(normalizeProduct);
+      setProducts(normalized);
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to fetch products.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const openEditModal = (product: Product) => {
+  useEffect(() => {
+    fetchAllProducts();
+  }, [fetchAllProducts]);
+
+  const openAddModal = useCallback(() => {
+    setEditingProduct(undefined);
+    modalRef.current?.present();
+  }, []);
+
+  const openEditModal = useCallback((product: Product) => {
     setEditingProduct(product);
     modalRef.current?.present();
-  };
+  }, []);
 
-  const handleSubmit = (product: Product) => {
-    if (product.id) {
-      // Update product
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, ...product } : p))
-      );
-      Alert.alert("Success", "Product updated.");
-    } else {
-      // Add product with new id
-      const newProduct = {
-        ...product,
-        id: (products.length + 1).toString(),
-        image: product.image || "https://i.ibb.co/5GzXkwq/user-placeholder.png",
-      };
-      setProducts((prev) => [newProduct, ...prev]);
-      Alert.alert("Success", "Product added.");
-    }
-    modalRef.current?.dismiss();
-  };
+  const handleSubmit = useCallback(
+    async (product: Product) => {
+      setLoading(true);
+      try {
+        let savedProduct: Product;
+
+        if (product.id) {
+          savedProduct = await updateProduct(product);
+          savedProduct = normalizeProduct(savedProduct);
+          setProducts((prev) =>
+            prev.map((p) => (p.id === product.id ? savedProduct : p))
+          );
+          Alert.alert("Success", "Product updated.");
+        } else {
+          savedProduct = await addProduct(product);
+          savedProduct = normalizeProduct(savedProduct);
+          setProducts((prev) => [savedProduct, ...prev]);
+          Alert.alert("Success", "Product added.");
+        }
+        modalRef.current?.dismiss();
+
+        await fetchAllProducts();
+      } catch (err: any) {
+        Alert.alert("Error", err.message || "Failed to save product.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchAllProducts]
+  );
 
   const handleDelete = useCallback((id: string) => {
     Alert.alert("Delete product", "Are you sure?", [
@@ -105,14 +125,25 @@ const AllProductsScreen = () => {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => setProducts((prev) => prev.filter((p) => p.id !== id)),
+        onPress: async () => {
+          setLoading(true);
+          try {
+            await deleteProduct(id);
+            setProducts((prev) => prev.filter((p) => p.id !== id));
+            Alert.alert("Deleted", "Product deleted successfully.");
+          } catch (err: any) {
+            Alert.alert("Error", err.message || "Failed to delete product.");
+          } finally {
+            setLoading(false);
+          }
+        },
       },
     ]);
   }, []);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
+    <View style={styles.container}>
+      <View style={styles.searchAndNewAddContainer}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={colors.mutedText} />
           <TextInput
@@ -121,22 +152,37 @@ const AllProductsScreen = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={styles.searchInput}
-            accessibilityLabel="Search products"
             returnKeyType="search"
-            clearButtonMode="while-editing"
+            editable={!loading}
           />
         </View>
 
+        <TouchableOpacity
+          accessibilityLabel="addNewProduct"
+          onPress={openAddModal}
+          disabled={loading}
+          style={styles.addNewButton}
+        >
+          <Text style={styles.addNewButtonText}>Add New</Text>
+        </TouchableOpacity>
+      </View>
+
+      {loading && products.length === 0 ? (
+        <ActivityIndicator size="large" color={colors.primary} />
+      ) : (
         <FlatList
           data={filteredProducts}
-          keyExtractor={(item) => item.id!}
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => item.id ?? Math.random().toString()}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No products found.</Text>
             </View>
           )}
-          keyboardDismissMode="on-drag"
           renderItem={({ item }) => (
             <ProductCard
               product={item}
@@ -145,25 +191,15 @@ const AllProductsScreen = () => {
             />
           )}
         />
+      )}
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={styles.fab}
-          onPress={openAddModal}
-          accessibilityRole="button"
-          accessibilityLabel="Add new product"
-        >
-          <Ionicons name="add" size={28} color={colors.pureWhite} />
-        </TouchableOpacity>
-
-        <ProductAddOrUpdateModal
-          ref={modalRef}
-          product={editingProduct || undefined}
-          onSubmit={handleSubmit}
-          onDismiss={() => modalRef.current?.dismiss()}
-        />
-      </View>
-    </TouchableWithoutFeedback>
+      <ProductAddOrUpdateModal
+        ref={modalRef}
+        product={editingProduct}
+        onSubmit={handleSubmit}
+        onDismiss={() => modalRef.current?.dismiss()}
+      />
+    </View>
   );
 };
 
@@ -171,7 +207,18 @@ export default AllProductsScreen;
 
 const getStyles = (colors: any) =>
   StyleSheet.create({
-    container: { flex: 1, padding: 16, backgroundColor: colors.background },
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      backgroundColor: colors.background,
+    },
+    searchAndNewAddContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 8,
+      gap: 8,
+    },
     searchContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -179,36 +226,24 @@ const getStyles = (colors: any) =>
       borderRadius: 12,
       paddingHorizontal: 12,
       paddingVertical: 8,
-      marginBottom: 8,
-    },
-    searchInput: {
       flex: 1,
-      marginLeft: 8,
-      color: colors.text,
+    },
+    addNewButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderRadius: 8,
+      justifyContent: "center",
+      alignItems: "center",
+      minWidth: 100,
+    },
+    addNewButtonText: {
+      color: colors.pureWhite,
+      fontWeight: "600",
       fontSize: 16,
     },
-    listContent: { paddingBottom: 16, flexGrow: 1 },
-    emptyContainer: {
-      marginTop: 32,
-      alignItems: "center",
-      justifyContent: "center",
-      flex: 1,
-    },
+    searchInput: { flex: 1, marginLeft: 8, color: colors.text, fontSize: 16 },
+    listContent: { paddingBottom: 8 },
+    emptyContainer: { marginTop: 32, alignItems: "center" },
     emptyText: { color: colors.mutedText, fontSize: 16 },
-    fab: {
-      position: "absolute",
-      bottom: 24,
-      right: 24,
-      backgroundColor: colors.primary,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      justifyContent: "center",
-      alignItems: "center",
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 5,
-    },
   });

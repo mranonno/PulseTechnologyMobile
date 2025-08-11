@@ -41,10 +41,10 @@ const ProductCard: React.FC<ProductCardProps> = memo(
 
           <View style={styles.detailsRow}>
             <Text style={styles.detailText}>
-              Listed on:{formatDate(product.createAt)}
+              Listed on:{formatDate(product.createdAt)}
             </Text>
             <Text style={styles.detailText}>
-              Stock: {product.stock !== undefined ? product.stock : "N/A"}
+              Stock: {product.quantity !== undefined ? product.quantity : "N/A"}
             </Text>
           </View>
 
@@ -90,7 +90,7 @@ const getStyles = (colors: any) =>
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.15,
       shadowRadius: 4,
-      marginVertical: 8,
+      marginBottom: 8,
       padding: 12,
       alignItems: "center",
     },
