@@ -17,8 +17,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
-import ProductCard from "../components/ProductCard";
-import ProductAddOrUpdateModal from "../components/modal/ProductAddOrUpdateModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Product } from "../types/types";
 import {
@@ -49,6 +47,9 @@ const SoldScreen = () => {
   const styles = getStyles(colors);
 
   const modalRef = useRef<BottomSheetModal>(null);
+
+  const openModal = () => modalRef.current?.present();
+  const closeModal = () => modalRef.current?.close();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
@@ -196,18 +197,10 @@ const SoldScreen = () => {
           )}
         />
       )}
-
-      {/* <ProductAddOrUpdateModal
-        ref={modalRef}
-        product={editingProduct}
-        onSubmit={handleSubmit}
-        onDismiss={() => modalRef.current?.dismiss()}
-        loading={loading}
-      /> */}
       <AddSoldProductModal
         ref={modalRef}
         loading={loading}
-        onDismiss={() => modalRef.current?.dismiss()}
+        onDismiss={closeModal}
         onSubmit={handleSubmit}
         product={editingProduct}
       />

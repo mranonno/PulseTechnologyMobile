@@ -30,6 +30,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { formatDate } from "../../utils/commonFunction";
 import CustomInputField from "../ui/CustomInputField";
 import { Product } from "../../types/types";
+import useBackButtonHandler from "../../hooks/useBackButtonHandler";
 
 export type Props = {
   product?: Product;
@@ -46,6 +47,7 @@ const AddSoldProductModal = forwardRef<BottomSheetModal, Props>(
     const { bottom } = useSafeAreaInsets();
     const styles = useMemo(() => getStyles(colors, bottom), [colors, bottom]);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     const [productName, setProductName] = useState("");
     const [model, setModel] = useState("");
@@ -58,22 +60,14 @@ const AddSoldProductModal = forwardRef<BottomSheetModal, Props>(
     const [date, setDate] = useState(new Date());
     const [isDateSelected, setIsDateSelected] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    useEffect(() => {
-      const backHandler = BackHandler.addEventListener(
-        "hardwareBackPress",
-        () => {
-          if (isModalOpen) {
-            onDismiss();
-            return true;
-          }
-          return false;
-        }
-      );
-
-      return () => backHandler.remove();
-    }, [isModalOpen]);
+    useBackButtonHandler(() => {
+      if (isModalVisible) {
+        bottomSheetModalRef.current?.close();
+        return true;
+      }
+      return false;
+    }, isModalVisible);
 
     const onDateChange = (_: any, selectedDate?: Date) => {
       setShowDatePicker(false);
@@ -119,12 +113,27 @@ const AddSoldProductModal = forwardRef<BottomSheetModal, Props>(
         name="AddSoldProductModal"
         ref={bottomSheetModalRef}
         snapPoints={["80%"]}
+        onChange={(index) => {
+          if (index === -1) {
+            setIsModalVisible(false);
+          } else {
+            setIsModalVisible(true);
+          }
+        }}
         enablePanDownToClose
         onDismiss={onDismiss}
         enableDynamicSizing={false}
         handleIndicatorStyle={styles.handleBar}
         style={{ zIndex: 10 }}
         backgroundStyle={{ backgroundColor: colors.card, borderRadius: 24 }}
+        animationConfigs={{
+          damping: 30, // ↓ Lower = less resistance = faster
+          mass: 1,
+          stiffness: 250, // ↑ Higher = snappier/faster
+          overshootClamping: true, // Prevents bounce
+          restDisplacementThreshold: 0.5,
+          restSpeedThreshold: 0.5,
+        }}
         backdropComponent={({ animatedIndex, animatedPosition }) => (
           <BottomSheetBackdrop
             disappearsOnIndex={-1}

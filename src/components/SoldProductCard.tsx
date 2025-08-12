@@ -62,6 +62,15 @@ const SoldProductCard: React.FC<SoldProductCardProps> = ({
         <Text style={styles.title} numberOfLines={1}>
           {product.name}
         </Text>
+        <Text
+          style={styles.productModel}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {product.productModel
+            ? `Model: ${product.productModel}`
+            : "Model: N/A"}
+        </Text>
 
         <Text style={styles.price}>৳ {product.price.toFixed(2)}</Text>
 
@@ -100,18 +109,18 @@ const getStyles = (colors: any) =>
       flexDirection: "row",
       backgroundColor: colors.card,
       borderRadius: 12,
-      padding: 12,
-      marginBottom: 12,
+      elevation: 3,
       shadowColor: colors.shadow,
-      shadowOpacity: 0.08,
-      shadowRadius: 6,
       shadowOffset: { width: 0, height: 2 },
-      elevation: 6,
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      marginBottom: 8,
+      padding: 12,
       alignItems: "center",
     },
     image: {
-      width: 60,
-      height: 60,
+      width: 70,
+      height: 70,
       borderRadius: 8,
       marginRight: 12,
       backgroundColor: colors.imageBackground,
@@ -124,7 +133,11 @@ const getStyles = (colors: any) =>
       fontSize: 16,
       fontWeight: "600",
       color: colors.text,
-      marginBottom: 6,
+    },
+    productModel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.mutedText,
     },
     row: {
       flexDirection: "row",
