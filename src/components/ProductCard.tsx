@@ -118,13 +118,12 @@ const getStyles = (colors: Colors) =>
       fontSize: 16,
       fontWeight: "600",
       color: colors.text,
-      marginBottom: 6,
+      marginBottom: 4,
     },
     productModel: {
       fontSize: 13,
-      fontWeight: "500",
+      fontWeight: "600",
       color: colors.mutedText,
-      marginBottom: 6,
     },
 
     detailsRow: {

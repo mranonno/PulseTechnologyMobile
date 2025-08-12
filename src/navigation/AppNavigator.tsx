@@ -1,17 +1,11 @@
-// src/navigation/AppNavigator.tsx
 import React from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
-
-import LoginScreen from "../screens/LoginScreen";
 import BottomTabNavigator from "./BottomTabNavigator";
 import { useThemeContext } from "../theme/ThemeProvider";
-
-// Replace this hook with your real auth logic (context, redux, etc)
-const useAuth = () => {
-  const isLoggedIn = true; // TODO: Replace with real auth state
-  return { isLoggedIn };
-};
+import LoginScreen from "../screens/LoginScreen";
+import { useAuth } from "../context/AuthContext";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -23,6 +17,14 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const AppNavigator: React.FC = () => {
   const { isLoggedIn } = useAuth();
   const { colors } = useThemeContext();
+
+  if (isLoggedIn === null) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   const MyTheme = {
     ...DefaultTheme,
@@ -48,5 +50,13 @@ const AppNavigator: React.FC = () => {
     </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
 
 export default AppNavigator;

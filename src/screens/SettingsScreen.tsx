@@ -1,9 +1,12 @@
 import React, { useCallback, useRef } from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
 import ThemeSettingModal from "../components/modal/ThemeSettingModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { useAuth } from "../context/AuthContext";
+import { RootStackParamList } from "../navigation/AppNavigator";
 
 // Reusable Setting Item Component
 const SettingItem = React.memo(
@@ -42,9 +45,34 @@ const SettingItem = React.memo(
 );
 
 const SettingsScreen = () => {
+  const { logout } = useAuth();
   const { colors, theme } = useThemeContext();
   const styles = getStyles(colors);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
 
   const openBottomSheet = useCallback(() => {
     bottomSheetRef.current?.present();
@@ -72,13 +100,21 @@ const SettingsScreen = () => {
       title: "Check for Updates",
       icon: "cloud-download-outline",
       value: "Available",
-      action: openBottomSheet,
+      action: () => {
+        Alert.alert("Update", "Checking for updates...");
+      },
     },
     {
       title: "About App",
       icon: "information-circle-outline",
-      value: undefined,
-      action: openBottomSheet,
+      action: () => {
+        Alert.alert("About", "Pulse Technology App\nVersion 1.0.0");
+      },
+    },
+    {
+      title: "Logout",
+      icon: "log-out-outline",
+      action: handleLogout,
     },
   ];
 

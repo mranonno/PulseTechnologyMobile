@@ -3,6 +3,7 @@ import React from "react";
 import { SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { useThemeContext } from "../theme/ThemeProvider";
 import AppNavigator from "../navigation/AppNavigator";
+import { AuthProvider } from "../context/AuthContext";
 
 const Main = () => {
   const { theme } = useThemeContext();
@@ -15,7 +16,9 @@ const Main = () => {
         backgroundColor="transparent"
         barStyle={isDark ? "light-content" : "dark-content"}
       />
-      <AppNavigator />
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
     </SafeAreaView>
   );
 };

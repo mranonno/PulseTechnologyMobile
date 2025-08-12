@@ -5,39 +5,32 @@ import {
   Image,
   StyleSheet,
   ImageSourcePropType,
+  GestureResponderEvent,
 } from "react-native";
 import { useThemeContext } from "../theme/ThemeProvider";
+import { Product } from "../types/types";
+import { formatDate } from "../utils/commonFunction";
 
 type SoldProductCardProps = {
-  title: string;
-  price: number;
-  imageUrl?: string;
-  soldDate: string;
+  product: Product;
+  onEdit: (event: GestureResponderEvent) => void;
+  onDelete: (event: GestureResponderEvent) => void;
 };
 
 const SoldProductCard: React.FC<SoldProductCardProps> = ({
-  title,
-  price,
-  imageUrl,
-  soldDate,
+  product,
+  onDelete,
+  onEdit,
 }) => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
 
   const placeholder = require("../../assets/placeholder.png");
   const [imgSource, setImgSource] = useState<ImageSourcePropType>(
-    imageUrl ? { uri: imageUrl } : placeholder
+    product.image ? { uri: product.image } : placeholder
   );
 
   const handleImageError = () => setImgSource(placeholder);
-
-  const formattedDate = soldDate
-    ? new Date(soldDate).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-    : "N/A";
 
   return (
     <View style={styles.card}>
@@ -46,18 +39,19 @@ const SoldProductCard: React.FC<SoldProductCardProps> = ({
         style={styles.image}
         resizeMode="cover"
         onError={handleImageError}
-        accessibilityLabel={`${title} image`}
+        accessibilityLabel={`${product.name} image`}
       />
 
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>
-          {title}
+          {product.name}
         </Text>
 
-        <Text style={styles.price}>৳ {price.toFixed(2)}</Text>
+        <Text style={styles.price}>৳ {product.price.toFixed(2)}</Text>
 
         <Text style={styles.meta} numberOfLines={1}>
-          Sold on: <Text style={styles.metaValue}>{formattedDate}</Text>
+          Sold on:{" "}
+          <Text style={styles.metaValue}>{formatDate(product.createdAt)}</Text>
         </Text>
       </View>
     </View>

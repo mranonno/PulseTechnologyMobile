@@ -28,265 +28,236 @@ import { useThemeContext } from "../../theme/ThemeProvider";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDate } from "../../utils/commonFunction";
+import CustomInputField from "../ui/CustomInputField";
+import { Product } from "../../types/types";
 
-export type AddSoldProductModalRef = {
-  present: () => void;
-  dismiss: () => void;
+export type Props = {
+  product?: Product;
+  onSubmit: (product: Product) => void;
+  onDismiss: () => void;
+  loading: boolean;
 };
 
-const AddSoldProductModal = forwardRef<AddSoldProductModalRef>((_, ref) => {
-  const { colors } = useThemeContext();
-  const { bottom } = useSafeAreaInsets();
-  const styles = useMemo(() => getStyles(colors, bottom), [colors, bottom]);
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+const AddSoldProductModal = forwardRef<BottomSheetModal, Props>(
+  ({ product, onSubmit, onDismiss, loading }, ref) => {
+    useImperativeHandle(ref, () => bottomSheetModalRef.current!);
 
-  const [productName, setProductName] = useState("");
-  const [model, setModel] = useState("");
-  const [serial, setSerial] = useState("");
-  const [price, setPrice] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [contact, setContact] = useState("");
-  const [address, setAddress] = useState("");
-  const [note, setNote] = useState("");
-  const [date, setDate] = useState(new Date());
-  const [isDateSelected, setIsDateSelected] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+    const { colors } = useThemeContext();
+    const { bottom } = useSafeAreaInsets();
+    const styles = useMemo(() => getStyles(colors, bottom), [colors, bottom]);
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  const handlePresent = useCallback(() => {
-    setIsModalOpen(true);
-    bottomSheetModalRef.current?.present();
-  }, []);
+    const [productName, setProductName] = useState("");
+    const [model, setModel] = useState("");
+    const [serial, setSerial] = useState("");
+    const [price, setPrice] = useState("");
+    const [customerName, setCustomerName] = useState("");
+    const [contact, setContact] = useState("");
+    const [address, setAddress] = useState("");
+    const [note, setNote] = useState("");
+    const [date, setDate] = useState(new Date());
+    const [isDateSelected, setIsDateSelected] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleDismiss = useCallback(() => {
-    setIsModalOpen(false);
-    bottomSheetModalRef.current?.dismiss();
-  }, []);
-
-  useImperativeHandle(ref, () => ({
-    present: handlePresent,
-    dismiss: handleDismiss,
-  }));
-
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
-        if (isModalOpen) {
-          handleDismiss();
-          return true;
+    useEffect(() => {
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          if (isModalOpen) {
+            onDismiss();
+            return true;
+          }
+          return false;
         }
+      );
+
+      return () => backHandler.remove();
+    }, [isModalOpen]);
+
+    const onDateChange = (_: any, selectedDate?: Date) => {
+      setShowDatePicker(false);
+      if (selectedDate) {
+        setDate(selectedDate);
+        setIsDateSelected(true);
+      }
+    };
+
+    const resetForm = () => {
+      setProductName("");
+      setModel("");
+      setSerial("");
+      setPrice("");
+      setCustomerName("");
+      setContact("");
+      setAddress("");
+      setNote("");
+      setDate(new Date());
+      setIsDateSelected(false);
+    };
+
+    const validateForm = () => {
+      if (!productName || !model || !price || !customerName || !contact) {
+        Alert.alert("Missing Fields", "Please fill all required fields.");
         return false;
       }
-    );
+      if (isNaN(Number(price)) || Number(price) <= 0) {
+        Alert.alert("Invalid Price", "Price should be a positive number.");
+        return false;
+      }
+      if (!/^\d{6,}$/.test(contact)) {
+        Alert.alert("Invalid Contact", "Contact must be at least 6 digits.");
+        return false;
+      }
+      return true;
+    };
 
-    return () => backHandler.remove();
-  }, [isModalOpen]);
+    const submitHandler = () => {};
 
-  const onDateChange = (_: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setDate(selectedDate);
-      setIsDateSelected(true);
-    }
-  };
-
-  const resetForm = () => {
-    setProductName("");
-    setModel("");
-    setSerial("");
-    setPrice("");
-    setCustomerName("");
-    setContact("");
-    setAddress("");
-    setNote("");
-    setDate(new Date());
-    setIsDateSelected(false);
-  };
-
-  const validateForm = () => {
-    if (!productName || !model || !price || !customerName || !contact) {
-      Alert.alert("Missing Fields", "Please fill all required fields.");
-      return false;
-    }
-    if (isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert("Invalid Price", "Price should be a positive number.");
-      return false;
-    }
-    if (!/^\d{6,}$/.test(contact)) {
-      Alert.alert("Invalid Contact", "Contact must be at least 6 digits.");
-      return false;
-    }
-    return true;
-  };
-
-  const submitHandler = () => {
-    if (!validateForm()) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert("Success", "Product sold successfully!");
-      resetForm();
-      handleDismiss();
-    }, 1500);
-  };
-
-  return (
-    <BottomSheetModal
-      name="AddSoldProductModal"
-      ref={bottomSheetModalRef}
-      snapPoints={["80%"]}
-      enablePanDownToClose
-      onDismiss={handleDismiss}
-      enableDynamicSizing={false}
-      handleIndicatorStyle={styles.handleBar}
-      style={{ zIndex: 10 }}
-      backgroundStyle={{ backgroundColor: colors.card, borderRadius: 24 }}
-      backdropComponent={({ animatedIndex, animatedPosition }) => (
-        <BottomSheetBackdrop
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          animatedIndex={animatedIndex}
-          animatedPosition={animatedPosition}
-          pressBehavior="close"
-        />
-      )}
-    >
-      <Text style={styles.title}>Sold Product</Text>
-      <BottomSheetScrollView
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.container}
+    return (
+      <BottomSheetModal
+        name="AddSoldProductModal"
+        ref={bottomSheetModalRef}
+        snapPoints={["80%"]}
+        enablePanDownToClose
+        onDismiss={onDismiss}
+        enableDynamicSizing={false}
+        handleIndicatorStyle={styles.handleBar}
+        style={{ zIndex: 10 }}
+        backgroundStyle={{ backgroundColor: colors.card, borderRadius: 24 }}
+        backdropComponent={({ animatedIndex, animatedPosition }) => (
+          <BottomSheetBackdrop
+            disappearsOnIndex={-1}
+            appearsOnIndex={0}
+            animatedIndex={animatedIndex}
+            animatedPosition={animatedPosition}
+            pressBehavior="close"
+          />
+        )}
       >
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🛒 Product Details</Text>
-          <TextInput
-            autoFocus
-            placeholder="Name"
-            value={productName}
-            onChangeText={setProductName}
-            placeholderTextColor={colors.placeholder}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Model"
-            value={model}
-            onChangeText={setModel}
-            placeholderTextColor={colors.placeholder}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="S/N"
-            value={serial}
-            onChangeText={setSerial}
-            placeholderTextColor={colors.placeholder}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Price"
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-            placeholderTextColor={colors.placeholder}
-            style={styles.input}
-          />
+        <Text style={styles.title}>Sold Product</Text>
+        <BottomSheetScrollView
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.container}
+        >
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🛒 Product Details</Text>
+            <CustomInputField
+              autoFocus
+              placeholder="Name"
+              value={productName}
+              onChangeText={setProductName}
+            />
+            <CustomInputField
+              placeholder="Model"
+              value={model}
+              onChangeText={setModel}
+            />
+            <CustomInputField
+              placeholder="S/N"
+              value={serial}
+              onChangeText={setSerial}
+            />
+            <CustomInputField
+              placeholder="Price"
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+            />
 
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            style={[styles.input, styles.dateInput]}
-          >
-            <Text
-              style={{
-                color: isDateSelected ? colors.text : colors.placeholder,
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              style={[styles.input, styles.dateInput]}
+            >
+              <Text
+                style={{
+                  color: isDateSelected ? colors.text : colors.placeholder,
+                }}
+              >
+                {/* {isDateSelected ? formatDate(date) : "Select date"} */}
+                select date
+              </Text>
+              <Ionicons
+                name="chevron-down"
+                size={20}
+                color={colors.placeholder}
+              />
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={onDateChange}
+              />
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>👤 Customer Details</Text>
+            <CustomInputField
+              placeholder="Name"
+              value={customerName}
+              onChangeText={setCustomerName}
+            />
+            <CustomInputField
+              placeholder="Contact no"
+              value={contact}
+              onChangeText={setContact}
+              keyboardType="phone-pad"
+            />
+            <CustomInputField
+              placeholder="Address"
+              value={address}
+              onChangeText={setAddress}
+              style={{ textAlignVertical: "top", height: 80 }}
+              numberOfLines={3}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📝 Description</Text>
+            <CustomInputField
+              placeholder="Optional notes..."
+              value={note}
+              onChangeText={setNote}
+              placeholderTextColor={colors.placeholder}
+              multiline
+              numberOfLines={3}
+              style={{ textAlignVertical: "top", height: 80 }}
+            />
+          </View>
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={() => {
+                resetForm();
+                onDismiss();
               }}
             >
-              {isDateSelected ? formatDate(date) : "Select date"}
-            </Text>
-            <Ionicons
-              name="chevron-down"
-              size={20}
-              color={colors.placeholder}
-            />
-          </TouchableOpacity>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={onDateChange}
-            />
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>👤 Customer Details</Text>
-          <TextInput
-            placeholder="Name"
-            value={customerName}
-            onChangeText={setCustomerName}
-            placeholderTextColor={colors.placeholder}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Contact no"
-            value={contact}
-            onChangeText={setContact}
-            keyboardType="phone-pad"
-            placeholderTextColor={colors.placeholder}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Address"
-            value={address}
-            onChangeText={setAddress}
-            placeholderTextColor={colors.placeholder}
-            style={[styles.input, { textAlignVertical: "top", height: 80 }]}
-            numberOfLines={3}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📝 Description</Text>
-          <TextInput
-            placeholder="Optional notes..."
-            value={note}
-            onChangeText={setNote}
-            placeholderTextColor={colors.placeholder}
-            multiline
-            numberOfLines={3}
-            style={[styles.input, { textAlignVertical: "top", height: 80 }]}
-          />
-        </View>
-
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={() => {
-              resetForm();
-              handleDismiss();
-            }}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.confirmBtn}
-            onPress={submitHandler}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.pureWhite} />
-            ) : (
-              <Text style={styles.confirmText}>Confirm</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </BottomSheetScrollView>
-    </BottomSheetModal>
-  );
-});
+            <TouchableOpacity
+              style={styles.confirmBtn}
+              onPress={submitHandler}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.pureWhite} />
+              ) : (
+                <Text style={styles.confirmText}>Confirm</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </BottomSheetScrollView>
+      </BottomSheetModal>
+    );
+  }
+);
 
 export default AddSoldProductModal;
 
@@ -308,6 +279,16 @@ const getStyles = (colors: Colors, bottom: number) =>
       flexDirection: "row",
       justifyContent: "space-between",
       marginBottom: 20,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 10,
+      padding: 12,
+      marginBottom: 12,
+      color: colors.text,
+      fontSize: 15,
+      backgroundColor: colors.card,
     },
     cancelBtn: {
       flex: 1,
@@ -335,16 +316,7 @@ const getStyles = (colors: Colors, bottom: number) =>
       fontWeight: "600",
     },
     handleBar: { backgroundColor: colors.primary, width: 50 },
-    input: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 10,
-      padding: 12,
-      marginBottom: 12,
-      color: colors.text,
-      fontSize: 15,
-      backgroundColor: colors.card,
-    },
+
     section: {
       marginBottom: 20,
     },

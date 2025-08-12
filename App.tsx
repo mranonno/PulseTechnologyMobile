@@ -8,17 +8,20 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import { ThemeProvider } from "./src/theme/ThemeProvider";
+import { GlobalProvider } from "./src/context/GlobalContext";
 import Main from "./src/_layout/Main";
 
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <ThemeProvider>
-          <BottomSheetModalProvider>
-            <Main />
-          </BottomSheetModalProvider>
-        </ThemeProvider>
+        <GlobalProvider>
+          <ThemeProvider>
+            <BottomSheetModalProvider>
+              <Main />
+            </BottomSheetModalProvider>
+          </ThemeProvider>
+        </GlobalProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

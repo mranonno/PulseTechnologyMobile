@@ -1,124 +1,261 @@
-import React, { useCallback, useRef } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import {
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
+  Alert,
   FlatList,
-  ListRenderItem,
+  StyleSheet,
+  TextInput,
   View,
   Text,
+  ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
-import { useThemeContext } from "../theme/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
-import SoldProductCard from "../components/SoldProductCard";
+import { useThemeContext } from "../theme/ThemeProvider";
+import ProductCard from "../components/ProductCard";
+import ProductAddOrUpdateModal from "../components/modal/ProductAddOrUpdateModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { Product } from "../types/types";
+import {
+  getAllProducts,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+} from "../services/productService";
+import SoldProductCard from "../components/SoldProductCard";
 import AddSoldProductModal from "../components/modal/AddSoldProductModal";
 
-type SoldProduct = {
-  id: string;
-  title: string;
-  price: number;
-  soldDate: string;
-};
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
-const soldProducts: SoldProduct[] = [
-  // Uncomment below to test with real data
-  { id: "1", title: "Product A", price: 200, soldDate: "2025-08-01" },
-  { id: "2", title: "Product B", price: 450, soldDate: "2025-07-20" },
-  { id: "3", title: "Product C", price: 330, soldDate: "2025-06-15" },
-];
+const normalizeProduct = (p: any): Product => ({
+  ...p,
+  id: p._id,
+});
 
 const SoldScreen = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const handleAddSoldItem = useCallback(() => {
-    bottomSheetRef.current?.present();
+  const modalRef = useRef<BottomSheetModal>(null);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
+  const [loading, setLoading] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  const filteredProducts = useMemo(() => {
+    const q = debouncedSearchQuery.trim().toLowerCase();
+    return q
+      ? products.filter((p) => (p.name || "").toLowerCase().includes(q))
+      : products;
+  }, [debouncedSearchQuery, products]);
+
+  const fetchAllProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await getAllProducts();
+      const normalized = (response.products || []).map(normalizeProduct);
+      setProducts(normalized);
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to fetch products.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const renderItem: ListRenderItem<SoldProduct> = ({ item }) => (
-    <SoldProductCard
-      title={item.title}
-      price={item.price}
-      soldDate={item.soldDate}
-    />
+  useEffect(() => {
+    fetchAllProducts();
+  }, [fetchAllProducts]);
+
+  const openAddModal = useCallback(() => {
+    setEditingProduct(undefined);
+    modalRef.current?.present();
+  }, []);
+
+  const openEditModal = useCallback((product: Product) => {
+    setEditingProduct(product);
+    modalRef.current?.present();
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (product: Product) => {
+      console.log(product);
+      setLoading(true);
+      try {
+        let savedProduct: Product;
+
+        if (product.id) {
+          savedProduct = await updateProduct(product);
+          savedProduct = normalizeProduct(savedProduct);
+          setProducts((prev) =>
+            prev.map((p) => (p.id === product.id ? savedProduct : p))
+          );
+          Alert.alert("Success", "Product updated.");
+        } else {
+          savedProduct = await addProduct(product);
+          savedProduct = normalizeProduct(savedProduct);
+          setProducts((prev) => [savedProduct, ...prev]);
+          Alert.alert("Success", "Product added.");
+        }
+        modalRef.current?.dismiss();
+
+        await fetchAllProducts();
+      } catch (err: any) {
+        Alert.alert("Error", err.message || "Failed to save product.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchAllProducts]
   );
 
-  const EmptyListComponent = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="cube-outline" size={64} color={colors.mutedText} />
-      <Text style={styles.emptyText}>No sold items available</Text>
-    </View>
-  );
+  const handleDelete = useCallback((id: string) => {
+    Alert.alert("Delete product", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          setLoading(true);
+          try {
+            await deleteProduct(id);
+            setProducts((prev) => prev.filter((p) => p.id !== id));
+            Alert.alert("Deleted", "Product deleted successfully.");
+          } catch (err: any) {
+            Alert.alert("Error", err.message || "Failed to delete product.");
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
+  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={soldProducts}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={
-          soldProducts.length === 0 ? styles.emptyWrapper : styles.listContent
-        }
-        ListEmptyComponent={EmptyListComponent}
-        showsVerticalScrollIndicator={false}
+    <View style={styles.container}>
+      <View style={styles.searchAndSoldNewContainer}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color={colors.mutedText} />
+          <TextInput
+            placeholder="Search products..."
+            placeholderTextColor={colors.mutedText}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={styles.searchInput}
+            returnKeyType="search"
+            editable={!loading}
+          />
+        </View>
+
+        <TouchableOpacity
+          accessibilityLabel="soldNewButton"
+          onPress={openAddModal}
+          disabled={loading}
+          style={styles.soldNewButton}
+        >
+          <Text style={styles.soldNewButtonText}>Sold New</Text>
+        </TouchableOpacity>
+      </View>
+
+      {loading && products.length === 0 ? (
+        <ActivityIndicator size="large" color={colors.primary} />
+      ) : (
+        <FlatList
+          data={filteredProducts}
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => item.id ?? Math.random().toString()}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No products found.</Text>
+            </View>
+          )}
+          renderItem={({ item }) => (
+            <SoldProductCard
+              product={item}
+              onEdit={() => openEditModal(item)}
+              onDelete={() => handleDelete(item.id!)}
+            />
+          )}
+        />
+      )}
+
+      {/* <ProductAddOrUpdateModal
+        ref={modalRef}
+        product={editingProduct}
+        onSubmit={handleSubmit}
+        onDismiss={() => modalRef.current?.dismiss()}
+        loading={loading}
+      /> */}
+      <AddSoldProductModal
+        ref={modalRef}
+        loading={loading}
+        onDismiss={() => modalRef.current?.dismiss()}
+        onSubmit={handleSubmit}
+        product={editingProduct}
       />
-
-      {/* Floating Plus Button */}
-      <TouchableOpacity
-        activeOpacity={0.7}
-        style={styles.fab}
-        onPress={handleAddSoldItem}
-      >
-        <Ionicons name="add" size={28} color={colors.pureWhite} />
-      </TouchableOpacity>
-
-      {/* Add Sold Product Modal */}
-      <AddSoldProductModal ref={bottomSheetRef} />
-    </SafeAreaView>
+    </View>
   );
 };
 
 export default SoldScreen;
-const getStyles = (colors: Colors) =>
+
+const getStyles = (colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 8,
       backgroundColor: colors.background,
     },
-    listContent: {
-      padding: 16,
-      paddingBottom: 80,
-    },
-    emptyWrapper: {
-      flexGrow: 1,
-      justifyContent: "center",
+    searchAndSoldNewContainer: {
+      flexDirection: "row",
       alignItems: "center",
-      padding: 24,
+      marginBottom: 8,
+      gap: 8,
     },
-    emptyContainer: {
+    searchContainer: {
+      flexDirection: "row",
       alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      flex: 1,
     },
-    emptyText: {
-      fontSize: 16,
-      marginTop: 12,
-      color: colors.mutedText,
-    },
-    fab: {
-      position: "absolute",
-      bottom: 24,
-      right: 24,
+    soldNewButton: {
       backgroundColor: colors.primary,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderRadius: 8,
       justifyContent: "center",
       alignItems: "center",
-      elevation: 5,
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
+      minWidth: 100,
     },
+    soldNewButtonText: {
+      color: colors.pureWhite,
+      fontWeight: "600",
+      fontSize: 16,
+    },
+    searchInput: { flex: 1, marginLeft: 8, color: colors.text, fontSize: 16 },
+    listContent: { paddingBottom: 8 },
+    emptyContainer: { marginTop: 32, alignItems: "center" },
+    emptyText: { color: colors.mutedText, fontSize: 16 },
   });
