@@ -56,6 +56,7 @@ export const deleteProduct = async (id: string) => {
 const buildFormData = (product: Product) => {
   const formData = new FormData();
   formData.append("name", product.name);
+  formData.append("productModel", product.productModel);
   formData.append("price", String(product.price));
   formData.append("quantity", String(product.quantity));
   formData.append(

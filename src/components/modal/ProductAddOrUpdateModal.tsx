@@ -66,7 +66,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
     useEffect(() => {
       if (product) {
         setProductName(product.name);
-        setProductModel(product.model);
+        setProductModel(product.productModel);
         setPrice(product.price.toString());
         setQuantity(product.quantity.toString());
         setDescription(product.description ?? "");
@@ -149,7 +149,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
       onSubmit({
         id: product?.id,
         name: productName.trim(),
-        model: productModel.trim(),
+        productModel: productModel.trim(),
         price: priceNum,
         quantity: stockNum,
         description: description.trim() || "",

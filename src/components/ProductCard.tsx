@@ -38,6 +38,15 @@ const ProductCard: React.FC<ProductCardProps> = memo(
           <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
             {product.name}
           </Text>
+          <Text
+            style={styles.productModel}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {product.productModel
+              ? `Model: ${product.productModel}`
+              : "Model: N/A"}
+          </Text>
 
           <View style={styles.detailsRow}>
             <Text style={styles.detailText}>
@@ -79,7 +88,7 @@ const ProductCard: React.FC<ProductCardProps> = memo(
   }
 );
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     card: {
       flexDirection: "row",
@@ -111,6 +120,13 @@ const getStyles = (colors: any) =>
       color: colors.text,
       marginBottom: 6,
     },
+    productModel: {
+      fontSize: 13,
+      fontWeight: "500",
+      color: colors.mutedText,
+      marginBottom: 6,
+    },
+
     detailsRow: {
       flexDirection: "row",
     },

@@ -91,6 +91,7 @@ const AllProductsScreen = () => {
 
   const handleSubmit = useCallback(
     async (product: Product) => {
+      console.log(product);
       setLoading(true);
       try {
         let savedProduct: Product;
