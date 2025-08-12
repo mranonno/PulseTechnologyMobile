@@ -4,11 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
 import ThemeSettingModal from "../components/modal/ThemeSettingModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
-import { RootStackParamList } from "../navigation/AppNavigator";
+import NavigationService from "../navigation/NavigationService";
 
-// Reusable Setting Item Component
 const SettingItem = React.memo(
   ({
     icon,
@@ -50,8 +48,6 @@ const SettingsScreen = () => {
   const styles = getStyles(colors);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
   const handleLogout = async () => {
     Alert.alert(
       "Confirm Logout",
@@ -63,10 +59,7 @@ const SettingsScreen = () => {
           style: "destructive",
           onPress: async () => {
             await logout();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Login" }],
-            });
+            NavigationService.reset([{ name: "Login" }]);
           },
         },
       ],

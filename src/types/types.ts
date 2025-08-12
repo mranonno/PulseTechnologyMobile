@@ -9,6 +9,15 @@ export interface Product {
   image?: string | { uri: string; name?: string; type?: string };
   createdAt?: string;
 }
+export interface SoldProduct {
+  id?: string;
+  name: string;
+  productModel: string;
+  price: number;
+  quantity: number;
+  image?: string | { uri: string; name?: string; type?: string };
+  createdAt?: string;
+}
 export interface GetAllProductsResponse {
   message: string;
   products: Product[];

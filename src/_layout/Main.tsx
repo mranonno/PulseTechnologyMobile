@@ -1,4 +1,3 @@
-// src/_layout/Main.tsx
 import React from "react";
 import { SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { useThemeContext } from "../theme/ThemeProvider";
