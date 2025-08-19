@@ -41,7 +41,7 @@ interface Props {
   onDismiss: () => void;
 }
 
-const SNAP_POINTS = ["55%"];
+const SNAP_POINTS = ["56%"];
 
 const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
   ({ product, onSubmit, onDismiss }, ref) => {
