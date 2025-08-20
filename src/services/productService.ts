@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAllProductsResponse, Product } from "../types/types";
 
-const API_BASE = "http://192.168.1.21:5000";
+const API_BASE = "http://192.168.1.14:5000";
 
 const getAuthHeaders = async () => {
   //   const token = await AsyncStorage.getItem("authToken");
