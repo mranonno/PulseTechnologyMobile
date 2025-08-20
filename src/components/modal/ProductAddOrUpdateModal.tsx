@@ -33,6 +33,7 @@ import { useThemeContext } from "../../theme/ThemeProvider";
 import CustomInputField from "../ui/CustomInputField";
 import { Product } from "../../types/types";
 import useBackButtonHandler from "../../hooks/useBackButtonHandler";
+import { ImageSource } from "react-native-vector-icons/Icon";
 
 // ====================
 // Types
@@ -45,11 +46,7 @@ interface Props {
   loading: boolean;
 }
 
-type ImageSource = { uri: string; name?: string; type?: string };
-
-// ====================
-// Component
-// ====================
+const SNAP_POINTS = ["56%"];
 
 const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
   ({ product, onSubmit, onDismiss: onDismissCallback, loading }, ref) => {
@@ -251,7 +248,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
     return (
       <BottomSheetModal
         ref={bottomSheetModalRef}
-        snapPoints={["90%"]}
+        snapPoints={SNAP_POINTS}
         enablePanDownToClose
         onDismiss={handleDismiss}
         onChange={handleChange}
