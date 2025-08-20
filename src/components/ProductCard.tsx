@@ -139,7 +139,7 @@ const getStyles = (colors: Colors) =>
     },
     priceText: {
       fontSize: 14,
-      fontWeight: "700",
+      fontWeight: "800",
       color: colors.primary,
     },
     actionsContainer: {

@@ -35,10 +35,6 @@ import { Product } from "../../types/types";
 import useBackButtonHandler from "../../hooks/useBackButtonHandler";
 import { ImageSource } from "react-native-vector-icons/Icon";
 
-// ====================
-// Types
-// ====================
-
 interface Props {
   product?: Product;
   onSubmit: (product: Product) => void;
@@ -59,6 +55,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
 
     const [productName, setProductName] = useState("");
     const [productModel, setProductModel] = useState("");
+    const [productOrigin, setProductOrigin] = useState("");
     const [price, setPrice] = useState("");
     const [quantity, setQuantity] = useState("");
     const [description, setDescription] = useState("");
@@ -96,6 +93,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
     const resetForm = useCallback(() => {
       setProductName("");
       setProductModel("");
+      setProductOrigin("");
       setPrice("");
       setQuantity("");
       setDescription("");
@@ -106,6 +104,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
       if (product) {
         setProductName(product.name);
         setProductModel(product.productModel || "");
+        setProductOrigin(product.productOrigin || "");
         setPrice(product.price?.toString() || "");
         setQuantity(product.quantity?.toString() || "");
         setDescription(product.description || "");
@@ -169,9 +168,10 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
       if (!productName.trim()) {
         return Alert.alert("Validation", "Please enter a product name.");
       }
-      if (!productModel.trim()) {
-        return Alert.alert("Validation", "Please enter a product model.");
-      }
+
+      // if (!productModel.trim()) {
+      //   return Alert.alert("Validation", "Please enter a product model.");
+      // }
 
       const priceNum = parseFloat(price);
       if (isNaN(priceNum) || priceNum < 0) {
@@ -187,6 +187,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
         id: product?.id ?? Date.now().toString(),
         name: productName.trim(),
         productModel: productModel.trim(),
+        productOrigin: productOrigin.trim(),
         price: priceNum,
         quantity: quantityNum,
         description: description.trim(),
@@ -198,6 +199,7 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
     }, [
       productName,
       productModel,
+      productOrigin,
       price,
       quantity,
       description,
@@ -292,11 +294,16 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
                 onChangeText={setProductName}
               />
               <CustomInputField
-                required
                 label="Product Model"
                 placeholder="e.g. WH-1000XM4"
                 value={productModel}
                 onChangeText={setProductModel}
+              />
+              <CustomInputField
+                label="Product Origin"
+                placeholder="e.g. China"
+                value={productOrigin}
+                onChangeText={setProductOrigin}
               />
               <CustomInputField
                 required
