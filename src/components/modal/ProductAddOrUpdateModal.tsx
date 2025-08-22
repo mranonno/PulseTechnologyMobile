@@ -61,10 +61,6 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
     const [description, setDescription] = useState("");
     const [image, setImage] = useState<ImageSource | string | null>(null);
 
-    // ====================
-    // Modal State Tracking
-    // ====================
-
     const handleChange = useCallback((index: number) => {
       if (index === -1) {
         setIsModalVisible(false);
@@ -72,10 +68,6 @@ const ProductAddOrUpdateModal = forwardRef<BottomSheetModal, Props>(
         setIsModalVisible(true);
       }
     }, []);
-
-    // ====================
-    // Back Button Handler
-    // ====================
 
     useBackButtonHandler(() => {
       if (isModalVisible) {
