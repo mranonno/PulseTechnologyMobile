@@ -6,6 +6,7 @@ import ThemeSettingModal from "../components/modal/ThemeSettingModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAuth } from "../context/AuthContext";
 import NavigationService from "../navigation/NavigationService";
+import * as Updates from "expo-updates";
 
 const SettingItem = React.memo(
   ({
@@ -47,6 +48,44 @@ const SettingsScreen = () => {
   const { colors, theme } = useThemeContext();
   const styles = getStyles(colors);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+  // ✅ MOVE update handler here
+  const handleCheckUpdates = async () => {
+    try {
+      const update = await Updates.checkForUpdateAsync();
+
+      if (update.isAvailable) {
+        Alert.alert(
+          "Update Available",
+          "A new update is available. Do you want to install it now?",
+          [
+            { text: "Later", style: "cancel" },
+            {
+              text: "Update",
+              onPress: async () => {
+                await Updates.fetchUpdateAsync();
+                Alert.alert(
+                  "Update Ready",
+                  "Restarting app to apply the update...",
+                  [
+                    {
+                      text: "Restart",
+                      onPress: () => Updates.reloadAsync(),
+                    },
+                  ]
+                );
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert("Up to Date", "Your app is running the latest version.");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Failed to check for updates.");
+    }
+  };
 
   const handleLogout = async () => {
     Alert.alert(
@@ -92,10 +131,7 @@ const SettingsScreen = () => {
     {
       title: "Check for Updates",
       icon: "cloud-download-outline",
-      value: "Available",
-      action: () => {
-        Alert.alert("Update", "Checking for updates...");
-      },
+      action: handleCheckUpdates,
     },
     {
       title: "About App",
