@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -18,19 +12,15 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
 import ProductCard from "../components/ProductCard";
-import ProductAddOrUpdateModal from "../components/modal/ProductAddOrUpdateModal";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Product } from "../types/types";
-import {
-  getAllProducts,
-  addProduct,
-  updateProduct,
-  deleteProduct,
-} from "../services/productService";
+import { getAllProducts, deleteProduct } from "../services/productService";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { InnerStackParamList } from "../navigation/StackNavigator";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
+  React.useEffect(() => {
     const handler = setTimeout(() => setDebouncedValue(value), delay);
     return () => clearTimeout(handler);
   }, [value, delay]);
@@ -46,14 +36,13 @@ const AllProductsScreen = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
 
-  const modalRef = useRef<BottomSheetModal>(null);
-
   const [products, setProducts] = useState<Product[]>([]);
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [loading, setLoading] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  const navigation =
+    useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
 
   const filteredProducts = useMemo(() => {
     const q = debouncedSearchQuery.trim().toLowerCase();
@@ -75,51 +64,20 @@ const AllProductsScreen = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchAllProducts();
-  }, [fetchAllProducts]);
-
-  const openAddModal = useCallback(() => {
-    setEditingProduct(undefined);
-    modalRef.current?.present();
-  }, []);
-
-  const openEditModal = useCallback((product: Product) => {
-    setEditingProduct(product);
-    modalRef.current?.present();
-  }, []);
-
-  const handleSubmit = useCallback(
-    async (product: Product) => {
-      console.log(product);
-      setLoading(true);
-      try {
-        let savedProduct: Product;
-
-        if (product.id) {
-          savedProduct = await updateProduct(product);
-          savedProduct = normalizeProduct(savedProduct);
-          setProducts((prev) =>
-            prev.map((p) => (p.id === product.id ? savedProduct : p))
-          );
-          Alert.alert("Success", "Product updated.");
-        } else {
-          savedProduct = await addProduct(product);
-          savedProduct = normalizeProduct(savedProduct);
-          setProducts((prev) => [savedProduct, ...prev]);
-          Alert.alert("Success", "Product added.");
-        }
-        modalRef.current?.dismiss();
-
-        await fetchAllProducts();
-      } catch (err: any) {
-        Alert.alert("Error", err.message || "Failed to save product.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [fetchAllProducts]
+  // ✅ Refresh list whenever screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchAllProducts();
+    }, [fetchAllProducts])
   );
+
+  const openAddScreen = () => {
+    navigation.navigate("AddOrUpdateProduct");
+  };
+
+  const openEditScreen = (product: Product) => {
+    navigation.navigate("AddOrUpdateProduct", { product });
+  };
 
   const handleDelete = useCallback((id: string) => {
     Alert.alert("Delete product", "Are you sure?", [
@@ -161,7 +119,7 @@ const AllProductsScreen = () => {
 
         <TouchableOpacity
           accessibilityLabel="addNewProduct"
-          onPress={openAddModal}
+          onPress={openAddScreen}
           disabled={loading}
           style={styles.addNewButton}
         >
@@ -188,20 +146,12 @@ const AllProductsScreen = () => {
           renderItem={({ item }) => (
             <ProductCard
               product={item}
-              onEdit={() => openEditModal(item)}
+              onEdit={() => openEditScreen(item)}
               onDelete={() => handleDelete(item.id!)}
             />
           )}
         />
       )}
-
-      <ProductAddOrUpdateModal
-        ref={modalRef}
-        product={editingProduct}
-        onSubmit={handleSubmit}
-        onDismiss={() => modalRef.current?.dismiss()}
-        loading={loading}
-      />
     </View>
   );
 };
