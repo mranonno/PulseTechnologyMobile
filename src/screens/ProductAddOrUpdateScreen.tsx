@@ -27,11 +27,16 @@ interface Props {
 }
 
 const fields = [
-  { key: "name", label: "Name", keyboardType: "default" },
+  { key: "name", label: "Name", keyboardType: "default", required: true },
   { key: "model", label: "Model", keyboardType: "default" },
   { key: "origin", label: "Origin", keyboardType: "default" },
-  { key: "price", label: "Price", keyboardType: "decimal-pad" },
-  { key: "quantity", label: "Quantity", keyboardType: "number-pad" },
+  { key: "price", label: "Price", keyboardType: "decimal-pad", required: true },
+  {
+    key: "quantity",
+    label: "Quantity",
+    keyboardType: "number-pad",
+    required: true,
+  },
   {
     key: "description",
     label: "Description",
@@ -187,6 +192,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
     >
       {fields.map((f) => (
         <CustomInputField
+          required={f.required}
           key={f.key}
           label={f.label}
           placeholder={`Enter ${f.label}`}

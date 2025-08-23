@@ -27,6 +27,7 @@ export const addProduct = async (product: Product): Promise<Product> => {
     "Content-Type": "multipart/form-data",
   };
   const formData = buildFormData(product);
+  console.log(formData);
   const { data } = await axios.post(`${API_BASE}/api/products`, formData, {
     headers,
   });
@@ -52,21 +53,27 @@ export const deleteProduct = async (id: string) => {
   const headers = await getAuthHeaders();
   await axios.delete(`${API_BASE}/api/products/${id}`, { headers });
 };
-
-// helper
 const buildFormData = (product: Product) => {
   const formData = new FormData();
-  formData.append("name", product.name);
-  formData.append("productModel", product.productModel);
-  formData.append("productOrigin", product.productOrigin);
-  formData.append("price", String(product.price));
-  formData.append("quantity", String(product.quantity));
-  formData.append(
-    "description",
-    product.description.trim() || "No description provided"
-  );
 
+  // Required field
+  formData.append("name", product.name);
+
+  // Optional fields
+  if (product.productModel)
+    formData.append("productModel", product.productModel);
+  if (product.productOrigin)
+    formData.append("productOrigin", product.productOrigin);
+  if (product.price !== undefined && product.price !== null)
+    formData.append("price", String(product.price));
+  if (product.quantity !== undefined && product.quantity !== null)
+    formData.append("quantity", String(product.quantity));
+  if (product.description?.trim())
+    formData.append("description", product.description.trim());
+
+  // Optional image
   if (
+    product.image &&
     typeof product.image === "object" &&
     product.image.uri &&
     !product.image.uri.startsWith("http")
@@ -78,5 +85,6 @@ const buildFormData = (product: Product) => {
     const type = product.image.type || `image/${match ? match[1] : "jpeg"}`;
     formData.append("image", { uri: localUri, name: filename, type } as any);
   }
+
   return formData;
 };
