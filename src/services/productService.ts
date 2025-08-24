@@ -2,7 +2,7 @@ import axios from "axios";
 import { BASE_URL } from "@env";
 import { GetAllProductsResponse, Product } from "../types/types";
 
-const API_BASE = BASE_URL;
+const API_BASE = "https://pulse-technology-server.vercel.app";
 console.log(API_BASE);
 
 const getAuthHeaders = async () => {
