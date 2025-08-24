@@ -1,5 +1,4 @@
 import axios from "axios";
-import { BASE_URL } from "@env";
 import { GetAllProductsResponse, Product } from "../types/types";
 
 const API_BASE = "https://pulse-technology-server.vercel.app";

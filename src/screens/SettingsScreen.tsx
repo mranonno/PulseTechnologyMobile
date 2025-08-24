@@ -6,7 +6,9 @@ import ThemeSettingModal from "../components/modal/ThemeSettingModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAuth } from "../context/AuthContext";
 import NavigationService from "../navigation/NavigationService";
-import * as Updates from "expo-updates";
+import { useNavigation } from "@react-navigation/native";
+import { InnerStackParamList } from "../navigation/StackNavigator";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const SettingItem = React.memo(
   ({
@@ -49,42 +51,11 @@ const SettingsScreen = () => {
   const styles = getStyles(colors);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  // ✅ MOVE update handler here
-  const handleCheckUpdates = async () => {
-    try {
-      const update = await Updates.checkForUpdateAsync();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
 
-      if (update.isAvailable) {
-        Alert.alert(
-          "Update Available",
-          "A new update is available. Do you want to install it now?",
-          [
-            { text: "Later", style: "cancel" },
-            {
-              text: "Update",
-              onPress: async () => {
-                await Updates.fetchUpdateAsync();
-                Alert.alert(
-                  "Update Ready",
-                  "Restarting app to apply the update...",
-                  [
-                    {
-                      text: "Restart",
-                      onPress: () => Updates.reloadAsync(),
-                    },
-                  ]
-                );
-              },
-            },
-          ]
-        );
-      } else {
-        Alert.alert("Up to Date", "Your app is running the latest version.");
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to check for updates.");
-    }
+  const handleCheckUpdates = async () => {
+    navigation.navigate("UpdateCheck");
   };
 
   const handleLogout = async () => {

@@ -8,12 +8,14 @@ import { Product } from "../types/types";
 import CustomHeader from "../components/CustomHeader";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
+import UpdateCheckScreen from "../screens/UpdateCheckScreen";
 
 export type InnerStackParamList = {
   Login: undefined;
   MainApp: undefined;
   AllProducts: undefined;
   AddOrUpdateProduct: { product?: Product } | undefined;
+  UpdateCheck: undefined;
 };
 
 const Stack = createNativeStackNavigator<InnerStackParamList>();
@@ -56,6 +58,7 @@ const StackNavigator: React.FC<Props> = ({ isLoggedIn }) => {
               <ProductAddOrUpdateScreen product={route.params?.product} />
             )}
           </Stack.Screen>
+          <Stack.Screen name="UpdateCheck" component={UpdateCheckScreen} />
         </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />
