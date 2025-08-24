@@ -9,9 +9,9 @@
     "newArchEnabled": true,
     "updates": {
       "enabled": true,
-      "checkAutomatically": "NEVER",
+      "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/6df733ee-09b0-499c-81d6-505f8293e3c5"
+      "url": "https://u.expo.dev/6df733ee-09b0-499c-81d6-505f8293e3c5?branch=preview"
     },
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -41,8 +41,6 @@
         "projectId": "6df733ee-09b0-499c-81d6-505f8293e3c5"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    }
+    "runtimeVersion": { "policy": "sdkVersion" }
   }
 }
