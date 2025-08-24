@@ -12,18 +12,27 @@ import { useThemeContext } from "../theme/ThemeProvider";
 const UpdateCheckScreen = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
+
   const [loading, setLoading] = useState(true);
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [status, setStatus] = useState<string | null>(
-    "Checking for updates..."
-  );
+  const [status, setStatus] = useState("Checking for updates...");
+  const [debugInfo, setDebugInfo] = useState("");
 
-  // Function to check for OTA update
   const checkForUpdate = async () => {
     setLoading(true);
     setStatus("Checking for updates...");
+
     try {
+      const runtimeVersion = Updates.runtimeVersion;
+      const updateUrl = (Updates as any).updateUrl;
+
+      console.log("Runtime version:", runtimeVersion);
+      console.log("Update URL:", updateUrl);
+
+      setDebugInfo(`Runtime: ${runtimeVersion}\nURL: ${updateUrl}`);
+
       const update = await Updates.checkForUpdateAsync();
+
       if (update.isAvailable) {
         setUpdateAvailable(true);
         setStatus("Update available! Tap below to install.");
@@ -31,32 +40,33 @@ const UpdateCheckScreen = () => {
         setUpdateAvailable(false);
         setStatus("App is up to date.");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Check update error:", error);
       setUpdateAvailable(false);
       setStatus("Failed to check for updates.");
+      setDebugInfo(error?.message || JSON.stringify(error));
     } finally {
       setLoading(false);
     }
   };
 
-  // Function to fetch & apply the update
   const handleInstallUpdate = async () => {
     setLoading(true);
     setStatus("Downloading update...");
+
     try {
       await Updates.fetchUpdateAsync();
       setStatus("Update downloaded! Restarting app...");
       await Updates.reloadAsync();
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Install update error:", error);
       setStatus("Failed to install update.");
+      setDebugInfo(error?.message || JSON.stringify(error));
     } finally {
       setLoading(false);
     }
   };
 
-  // Automatically check for update when screen mounts
   useEffect(() => {
     checkForUpdate();
   }, []);
@@ -65,6 +75,7 @@ const UpdateCheckScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>OTA Update Check</Text>
       {status && <Text style={styles.status}>{status}</Text>}
+      {debugInfo ? <Text style={styles.debug}>{debugInfo}</Text> : null}
 
       {loading && (
         <ActivityIndicator
@@ -91,7 +102,7 @@ const UpdateCheckScreen = () => {
 
 export default UpdateCheckScreen;
 
-const getStyles = (colors: Colors) =>
+const getStyles = (colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -108,6 +119,12 @@ const getStyles = (colors: Colors) =>
     status: {
       fontSize: 16,
       color: "#333",
+      textAlign: "center",
+      marginBottom: 10,
+    },
+    debug: {
+      fontSize: 12,
+      color: "#666",
       textAlign: "center",
       marginBottom: 20,
     },
