@@ -9,6 +9,7 @@ import CustomHeader from "../components/CustomHeader";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
 import UpdateCheckScreen from "../screens/UpdateCheckScreen";
+import PriceListScreen from "../screens/PriceListScreen";
 
 export type InnerStackParamList = {
   Login: undefined;
@@ -16,6 +17,7 @@ export type InnerStackParamList = {
   AllProducts: undefined;
   AddOrUpdateProduct: { product?: Product } | undefined;
   UpdateCheck: undefined;
+  PriceList: undefined;
 };
 
 const Stack = createNativeStackNavigator<InnerStackParamList>();
@@ -59,6 +61,16 @@ const StackNavigator: React.FC<Props> = ({ isLoggedIn }) => {
             )}
           </Stack.Screen>
           <Stack.Screen name="UpdateCheck" component={UpdateCheckScreen} />
+          <Stack.Screen
+            name="PriceList"
+            component={PriceListScreen}
+            options={{
+              headerShown: true,
+              header: () => (
+                <CustomHeader title="Price List" shadow borderBottom />
+              ),
+            }}
+          />
         </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />

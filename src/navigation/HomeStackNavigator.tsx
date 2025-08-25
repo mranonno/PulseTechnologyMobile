@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 export type HomeStackParamList = {
   HomeMain: undefined;
   AllProducts: undefined;
+  PriceList: undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
