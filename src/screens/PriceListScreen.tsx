@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,14 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { getAllProducts } from "../services/productService";
 import PriceListCard from "../components/PriceListCard";
-import AddPriceListProductModal, {
-  AddPriceListProductModalRef,
-} from "../components/modal/AddPriceListProductModal";
 import { PriceListProduct } from "../types/types";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { InnerStackParamList } from "../navigation/StackNavigator";
 
+// Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
   React.useEffect(() => {
@@ -28,14 +28,18 @@ function useDebounce<T>(value: T, delay: number): T {
   return debounced;
 }
 
-const normalizeProduct = (p: any): PriceListProduct => ({
-  id: p._id?.toString() ?? Math.random().toString(),
-  name: p.name ?? "Unnamed Product",
-  price1: p.price1 ?? p.price ?? undefined,
-  price2: p.price2 ?? undefined,
-  price3: p.price3 ?? undefined,
-  vendorName: p.vendorName ?? "Unknown Vendor",
-});
+// Normalize API product to PriceListProduct
+const normalizeProduct = (p: any): PriceListProduct => {
+  const id = p._id ? String(p._id) : Math.random().toString(); // Ensure id is string
+  return {
+    id,
+    name: p.name ?? "Unnamed Product",
+    price1: p.price1 ?? p.price ?? undefined,
+    price2: p.price2 ?? undefined,
+    price3: p.price3 ?? undefined,
+    vendorName: p.vendorName ?? "Unknown Vendor",
+  };
+};
 
 const PriceListScreen: React.FC = () => {
   const { colors } = useThemeContext();
@@ -46,8 +50,15 @@ const PriceListScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const modalRef = useRef<AddPriceListProductModalRef>(null);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
 
+  // Navigate to Add/Edit screen
+  const openAddScreen = () => {
+    navigation.navigate("PriceListProductOrUpdate");
+  };
+
+  // Filter products by search
   const filteredProducts = useMemo(() => {
     const q = debouncedSearchQuery.toLowerCase().trim();
     return q
@@ -55,6 +66,7 @@ const PriceListScreen: React.FC = () => {
       : products;
   }, [debouncedSearchQuery, products]);
 
+  // Fetch products from API
   const fetchAllProducts = useCallback(async () => {
     setLoading(true);
     try {
@@ -68,16 +80,16 @@ const PriceListScreen: React.FC = () => {
     }
   }, []);
 
+  // Refresh products on screen focus
   useFocusEffect(
     useCallback(() => {
       fetchAllProducts();
     }, [fetchAllProducts])
   );
 
-  const openModal = () => modalRef.current?.open();
-
   return (
     <View style={styles.container}>
+      {/* Search + Add */}
       <View style={styles.searchAndAddContainer}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={colors.mutedText} />
@@ -91,13 +103,14 @@ const PriceListScreen: React.FC = () => {
         </View>
         <TouchableOpacity
           style={styles.addNewButton}
-          onPress={openModal}
+          onPress={openAddScreen}
           disabled={loading}
         >
           <Text style={styles.addNewButtonText}>Add New</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Product List */}
       {loading && products.length === 0 ? (
         <ActivityIndicator size="large" color={colors.primary} />
       ) : (
@@ -113,13 +126,6 @@ const PriceListScreen: React.FC = () => {
           onRefresh={fetchAllProducts}
         />
       )}
-
-      <AddPriceListProductModal
-        ref={modalRef}
-        onAddProduct={(newProduct) =>
-          setProducts((prev) => [newProduct, ...prev])
-        }
-      />
     </View>
   );
 };
