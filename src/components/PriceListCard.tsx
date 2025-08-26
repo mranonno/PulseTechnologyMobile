@@ -1,10 +1,7 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useThemeContext } from "../theme/ThemeProvider";
 import { PriceListProduct } from "../types/types";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { InnerStackParamList } from "../navigation/StackNavigator";
 
 interface Props {
   product: PriceListProduct;
@@ -15,8 +12,17 @@ interface Props {
 const PriceListCard: React.FC<Props> = ({ product, onDelete, onEdit }) => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
-  const navigation =
-    useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Confirm Delete",
+      `Are you sure you want to delete "${product.name}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: onDelete },
+      ]
+    );
+  };
 
   return (
     <View style={styles.card}>
@@ -30,7 +36,7 @@ const PriceListCard: React.FC<Props> = ({ product, onDelete, onEdit }) => {
         <TouchableOpacity style={styles.editBtn} onPress={onEdit}>
           <Text style={styles.actionText}>Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.deleteBtn} onPress={onDelete}>
+        <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
           <Text style={styles.actionText}>Delete</Text>
         </TouchableOpacity>
       </View>
