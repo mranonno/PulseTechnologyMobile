@@ -1,22 +1,18 @@
 import React, {
-  useCallback,
   useMemo,
   useRef,
   useImperativeHandle,
   forwardRef,
   useState,
-  useEffect,
 } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   Platform,
   ActivityIndicator,
   Alert,
-  BackHandler,
 } from "react-native";
 import {
   BottomSheetBackdrop,

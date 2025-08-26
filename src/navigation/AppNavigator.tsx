@@ -33,7 +33,7 @@ const AppNavigator: React.FC = () => {
 
   return (
     <NavigationContainer theme={MyTheme} ref={NavigationService.setNavigator}>
-      <StackNavigator isLoggedIn={true} />
+      <StackNavigator isLoggedIn={isLoggedIn} />
     </NavigationContainer>
   );
 };

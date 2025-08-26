@@ -26,14 +26,15 @@ const CustomInputField: React.FC<CustomInputFieldProps> = ({
 }) => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
+
   return (
     <View style={styles.container}>
-      {label ? (
+      {label && (
         <Text style={styles.label}>
           {label}
           {required && <Text style={styles.required}> *</Text>}
         </Text>
-      ) : null}
+      )}
       <TextInput
         placeholder={placeholder}
         value={value}
@@ -48,21 +49,14 @@ const CustomInputField: React.FC<CustomInputFieldProps> = ({
 
 const getStyles = (colors: Colors) =>
   StyleSheet.create({
-    container: {
-      width: "100%",
-    },
+    container: { width: "100%" },
     label: {
       color: colors.text,
       fontSize: 14,
       fontWeight: "600",
       marginBottom: 4,
-      flexDirection: "row",
-      alignItems: "center",
     },
-    required: {
-      color: "red",
-      fontWeight: "700",
-    },
+    required: { color: "red", fontWeight: "700" },
     input: {
       borderWidth: 1,
       borderColor: colors.border,

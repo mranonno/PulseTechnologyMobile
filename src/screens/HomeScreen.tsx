@@ -1,11 +1,10 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { useThemeContext } from "../theme/ThemeProvider";
-import { Ionicons } from "@expo/vector-icons"; // or any other icon set
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../navigation/HomeStackNavigator";
-import CustomInputField from "../components/ui/CustomInputField";
 
 const HomeScreen = () => {
   const { colors } = useThemeContext();
@@ -80,6 +79,19 @@ const HomeScreen = () => {
             style={styles.icon}
           />
           <Text style={styles.navText}>Users</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("PriceList")}
+          activeOpacity={0.7}
+          style={styles.navCard}
+        >
+          <Ionicons
+            name="pricetag-outline"
+            size={32}
+            color={colors.primary}
+            style={styles.icon}
+          />
+          <Text style={styles.navText}>Price List</Text>
         </TouchableOpacity>
       </View>
     </View>

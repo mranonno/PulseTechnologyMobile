@@ -1,42 +1,51 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
-  Alert,
-  FlatList,
-  StyleSheet,
-  TextInput,
   View,
   Text,
-  ActivityIndicator,
+  TextInput,
+  FlatList,
   TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
-import ProductCard from "../components/ProductCard";
-import { Product } from "../types/types";
-import { getAllProducts, deleteProduct } from "../services/productService";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { getAllProducts } from "../services/productService";
+import PriceListCard from "../components/PriceListCard";
+import { PriceListProduct } from "../types/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { InnerStackParamList } from "../navigation/StackNavigator";
 
+// Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+  const [debounced, setDebounced] = useState(value);
   React.useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    const handler = setTimeout(() => setDebounced(value), delay);
     return () => clearTimeout(handler);
   }, [value, delay]);
-  return debouncedValue;
+  return debounced;
 }
 
-const normalizeProduct = (p: any): Product => ({
-  ...p,
-  id: p._id,
-});
+// Normalize API product to PriceListProduct
+const normalizeProduct = (p: any): PriceListProduct => {
+  const id = p._id ? String(p._id) : Math.random().toString(); // Ensure id is string
+  return {
+    id,
+    name: p.name ?? "Unnamed Product",
+    price1: p.price1 ?? p.price ?? undefined,
+    price2: p.price2 ?? undefined,
+    price3: p.price3 ?? undefined,
+    vendorName: p.vendorName ?? "Unknown Vendor",
+  };
+};
 
-const AllProductsScreen = () => {
+const PriceListScreen: React.FC = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<PriceListProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -44,13 +53,20 @@ const AllProductsScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
 
+  // Navigate to Add/Edit screen
+  const openAddScreen = () => {
+    navigation.navigate("PriceListProductOrUpdate");
+  };
+
+  // Filter products by search
   const filteredProducts = useMemo(() => {
-    const q = debouncedSearchQuery.trim().toLowerCase();
+    const q = debouncedSearchQuery.toLowerCase().trim();
     return q
-      ? products.filter((p) => (p.name || "").toLowerCase().includes(q))
+      ? products.filter((p) => p.name.toLowerCase().includes(q))
       : products;
   }, [debouncedSearchQuery, products]);
 
+  // Fetch products from API
   const fetchAllProducts = useCallback(async () => {
     setLoading(true);
     try {
@@ -64,46 +80,17 @@ const AllProductsScreen = () => {
     }
   }, []);
 
-  // ✅ Refresh list whenever screen comes into focus
+  // Refresh products on screen focus
   useFocusEffect(
     useCallback(() => {
       fetchAllProducts();
     }, [fetchAllProducts])
   );
 
-  const openAddScreen = () => {
-    navigation.navigate("AddOrUpdateProduct");
-  };
-
-  const openEditScreen = (product: Product) => {
-    navigation.navigate("AddOrUpdateProduct", { product });
-  };
-
-  const handleDelete = useCallback((id: string) => {
-    Alert.alert("Delete product", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await deleteProduct(id);
-            setProducts((prev) => prev.filter((p) => p.id !== id));
-            Alert.alert("Deleted", "Product deleted successfully.");
-          } catch (err: any) {
-            Alert.alert("Error", err.message || "Failed to delete product.");
-          } finally {
-            setLoading(false);
-          }
-        },
-      },
-    ]);
-  }, []);
-
   return (
     <View style={styles.container}>
-      <View style={styles.searchAndNewAddContainer}>
+      {/* Search + Add */}
+      <View style={styles.searchAndAddContainer}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={colors.mutedText} />
           <TextInput
@@ -112,51 +99,38 @@ const AllProductsScreen = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={styles.searchInput}
-            returnKeyType="search"
-            editable={!loading}
           />
         </View>
-
         <TouchableOpacity
-          accessibilityLabel="addNewProduct"
+          style={styles.addNewButton}
           onPress={openAddScreen}
           disabled={loading}
-          style={styles.addNewButton}
         >
           <Text style={styles.addNewButtonText}>Add New</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Product List */}
       {loading && products.length === 0 ? (
         <ActivityIndicator size="large" color={colors.primary} />
       ) : (
         <FlatList
           data={filteredProducts}
-          style={{ flex: 1 }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id ?? Math.random().toString()}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <PriceListCard product={item} />}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No products found.</Text>
-            </View>
+            <Text style={styles.emptyText}>No products found.</Text>
           )}
-          renderItem={({ item }) => (
-            <ProductCard
-              product={item}
-              onEdit={() => openEditScreen(item)}
-              onDelete={() => handleDelete(item.id!)}
-            />
-          )}
+          refreshing={loading}
+          onRefresh={fetchAllProducts}
         />
       )}
     </View>
   );
 };
 
-export default AllProductsScreen;
+export default PriceListScreen;
 
 const getStyles = (colors: any) =>
   StyleSheet.create({
@@ -166,37 +140,40 @@ const getStyles = (colors: any) =>
       paddingTop: 8,
       backgroundColor: colors.background,
     },
-    searchAndNewAddContainer: {
+    searchAndAddContainer: {
       flexDirection: "row",
       alignItems: "center",
       marginBottom: 8,
       gap: 8,
     },
     searchContainer: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: colors.card,
       borderRadius: 12,
       paddingHorizontal: 12,
       paddingVertical: 8,
-      flex: 1,
     },
+    searchInput: { flex: 1, marginLeft: 8, color: colors.text, fontSize: 16 },
     addNewButton: {
-      backgroundColor: colors.primary,
       paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingVertical: 14,
       borderRadius: 8,
       justifyContent: "center",
       alignItems: "center",
-      minWidth: 100,
+      backgroundColor: colors.primary,
     },
     addNewButtonText: {
       color: colors.pureWhite,
       fontWeight: "600",
       fontSize: 16,
     },
-    searchInput: { flex: 1, marginLeft: 8, color: colors.text, fontSize: 16 },
     listContent: { paddingBottom: 8 },
-    emptyContainer: { marginTop: 32, alignItems: "center" },
-    emptyText: { color: colors.mutedText, fontSize: 16 },
+    emptyText: {
+      color: colors.mutedText,
+      fontSize: 16,
+      textAlign: "center",
+      marginTop: 32,
+    },
   });

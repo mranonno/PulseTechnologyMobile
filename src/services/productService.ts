@@ -1,8 +1,25 @@
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { GetAllProductsResponse, Product } from "../types/types";
+import {
+  GetAllProductsResponse,
+  PriceListProduct,
+  Product,
+} from "../types/types";
 
-const API_BASE = "http://192.168.1.14:5000";
+const API_BASE = "https://pulse-technology-server.vercel.app";
+console.log(API_BASE);
+
+const buildPriceListFormData = (product: PriceListProduct) => {
+  const formData = new FormData();
+  formData.append("name", product.name);
+  if (product.price1 !== undefined)
+    formData.append("price1", String(product.price1));
+  if (product.price2 !== undefined)
+    formData.append("price2", String(product.price2));
+  if (product.price3 !== undefined)
+    formData.append("price3", String(product.price3));
+  if (product.vendorName) formData.append("vendorName", product.vendorName);
+  return formData;
+};
 
 const getAuthHeaders = async () => {
   //   const token = await AsyncStorage.getItem("authToken");
@@ -26,9 +43,23 @@ export const addProduct = async (product: Product): Promise<Product> => {
     "Content-Type": "multipart/form-data",
   };
   const formData = buildFormData(product);
+  console.log(formData);
   const { data } = await axios.post(`${API_BASE}/api/products`, formData, {
     headers,
   });
+  return data;
+};
+
+export const addPriceListProduct = async (product: PriceListProduct) => {
+  const headers = { ...(await getAuthHeaders()) };
+  const formData = buildPriceListFormData(product);
+  const { data } = await axios.post(
+    `${API_BASE}/api/price-list-products`,
+    formData,
+    {
+      headers,
+    }
+  );
   return data;
 };
 
@@ -46,26 +77,43 @@ export const updateProduct = async (product: Product): Promise<Product> => {
   );
   return data;
 };
+export const updatePriceListProduct = async (product: PriceListProduct) => {
+  if (!product.id) throw new Error("Product ID required for update.");
+  const headers = { ...(await getAuthHeaders()) };
+  const formData = buildPriceListFormData(product);
+  const { data } = await axios.put(
+    `${API_BASE}/api/price-list-products/${product.id}`,
+    formData,
+    { headers }
+  );
+  return data;
+};
 
 export const deleteProduct = async (id: string) => {
   const headers = await getAuthHeaders();
   await axios.delete(`${API_BASE}/api/products/${id}`, { headers });
 };
-
-// helper
 const buildFormData = (product: Product) => {
   const formData = new FormData();
-  formData.append("name", product.name);
-  formData.append("productModel", product.productModel);
-  formData.append("productOrigin", product.productOrigin);
-  formData.append("price", String(product.price));
-  formData.append("quantity", String(product.quantity));
-  formData.append(
-    "description",
-    product.description.trim() || "No description provided"
-  );
 
+  // Required field
+  formData.append("name", product.name);
+
+  // Optional fields
+  if (product.productModel)
+    formData.append("productModel", product.productModel);
+  if (product.productOrigin)
+    formData.append("productOrigin", product.productOrigin);
+  if (product.price !== undefined && product.price !== null)
+    formData.append("price", String(product.price));
+  if (product.quantity !== undefined && product.quantity !== null)
+    formData.append("quantity", String(product.quantity));
+  if (product.description?.trim())
+    formData.append("description", product.description.trim());
+
+  // Optional image
   if (
+    product.image &&
     typeof product.image === "object" &&
     product.image.uri &&
     !product.image.uri.startsWith("http")
@@ -77,5 +125,6 @@ const buildFormData = (product: Product) => {
     const type = product.image.type || `image/${match ? match[1] : "jpeg"}`;
     formData.append("image", { uri: localUri, name: filename, type } as any);
   }
+
   return formData;
 };

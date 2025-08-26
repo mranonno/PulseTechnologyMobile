@@ -6,6 +6,9 @@ import ThemeSettingModal from "../components/modal/ThemeSettingModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAuth } from "../context/AuthContext";
 import NavigationService from "../navigation/NavigationService";
+import { useNavigation } from "@react-navigation/native";
+import { InnerStackParamList } from "../navigation/StackNavigator";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const SettingItem = React.memo(
   ({
@@ -47,6 +50,13 @@ const SettingsScreen = () => {
   const { colors, theme } = useThemeContext();
   const styles = getStyles(colors);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+  const navigation =
+    useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
+
+  const handleCheckUpdates = async () => {
+    navigation.navigate("UpdateCheck");
+  };
 
   const handleLogout = async () => {
     Alert.alert(
@@ -92,10 +102,7 @@ const SettingsScreen = () => {
     {
       title: "Check for Updates",
       icon: "cloud-download-outline",
-      value: "Available",
-      action: () => {
-        Alert.alert("Update", "Checking for updates...");
-      },
+      action: handleCheckUpdates,
     },
     {
       title: "About App",
