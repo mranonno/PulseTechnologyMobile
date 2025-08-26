@@ -1,10 +1,11 @@
+// src/screens/UpdateCheckScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import * as Updates from "expo-updates";
 import { useThemeContext } from "../theme/ThemeProvider";
@@ -21,17 +22,11 @@ const UpdateCheckScreen = () => {
   const checkForUpdate = async () => {
     setLoading(true);
     setStatus("Checking for updates...");
-
     try {
-      const runtimeVersion = Updates.runtimeVersion;
-      const updateUrl = (Updates as any).updateUrl;
-
-      console.log("Runtime version:", runtimeVersion);
-      console.log("Update URL:", updateUrl);
-
-      setDebugInfo(`Runtime: ${runtimeVersion}\nURL: ${updateUrl}`);
-
       const update = await Updates.checkForUpdateAsync();
+      setDebugInfo(
+        `Runtime: ${Updates.runtimeVersion}\nURL: ${(Updates as any).updateUrl}`
+      );
 
       if (update.isAvailable) {
         setUpdateAvailable(true);
@@ -41,7 +36,7 @@ const UpdateCheckScreen = () => {
         setStatus("App is up to date.");
       }
     } catch (error: any) {
-      console.error("Check update error:", error);
+      console.error(error);
       setUpdateAvailable(false);
       setStatus("Failed to check for updates.");
       setDebugInfo(error?.message || JSON.stringify(error));
@@ -53,13 +48,12 @@ const UpdateCheckScreen = () => {
   const handleInstallUpdate = async () => {
     setLoading(true);
     setStatus("Downloading update...");
-
     try {
       await Updates.fetchUpdateAsync();
       setStatus("Update downloaded! Restarting app...");
       await Updates.reloadAsync();
     } catch (error: any) {
-      console.error("Install update error:", error);
+      console.error(error);
       setStatus("Failed to install update.");
       setDebugInfo(error?.message || JSON.stringify(error));
     } finally {
@@ -74,7 +68,7 @@ const UpdateCheckScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>OTA Update Check</Text>
-      {status && <Text style={styles.status}>{status}</Text>}
+      <Text style={styles.status}>{status}</Text>
       {debugInfo ? <Text style={styles.debug}>{debugInfo}</Text> : null}
 
       {loading && (
@@ -111,11 +105,7 @@ const getStyles = (colors: any) =>
       paddingHorizontal: 24,
       backgroundColor: colors.background,
     },
-    title: {
-      fontSize: 26,
-      fontWeight: "bold",
-      marginBottom: 24,
-    },
+    title: { fontSize: 26, fontWeight: "bold", marginBottom: 24 },
     status: {
       fontSize: 16,
       color: "#333",
@@ -135,9 +125,5 @@ const getStyles = (colors: any) =>
       borderRadius: 8,
       marginTop: 12,
     },
-    buttonText: {
-      color: colors.pureWhite,
-      fontSize: 16,
-      fontWeight: "bold",
-    },
+    buttonText: { color: colors.pureWhite, fontSize: 16, fontWeight: "bold" },
   });

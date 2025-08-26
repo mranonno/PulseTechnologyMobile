@@ -54,7 +54,7 @@ const SettingsScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
 
-  const handleCheckUpdates = async () => {
+  const handleCheckUpdates = () => {
     navigation.navigate("UpdateCheck");
   };
 

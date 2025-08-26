@@ -1,11 +1,12 @@
+// src/services/checkForUpdate.ts
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 
-export const checkForUpdate = async (returnStatus = false) => {
+export const checkForUpdate = async () => {
   try {
     const update = await Updates.checkForUpdateAsync();
+
     if (update.isAvailable) {
-      if (returnStatus) return { isAvailable: true };
       Alert.alert(
         "Update Available",
         "A new version is available. Do you want to install it now?",
@@ -30,13 +31,10 @@ export const checkForUpdate = async (returnStatus = false) => {
         ]
       );
     } else {
-      if (returnStatus) return { isAvailable: false };
       Alert.alert("Up to Date", "Your app is running the latest version.");
     }
-    return update;
   } catch (error) {
-    console.error(error);
-    if (!returnStatus) Alert.alert("Error", "Failed to check for updates.");
-    throw error;
+    console.error("Check update error:", error);
+    Alert.alert("Error", "Failed to check for updates.");
   }
 };

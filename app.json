@@ -28,7 +28,6 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "android.softwareKeyboardLayoutMode": "resize",
       "package": "com.imranoffice28.PulseTechnologyMobile"
     },
     "web": {
