@@ -1,189 +1,147 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState } from "react";
 import {
   View,
-  Text,
+  TextInput,
   TouchableOpacity,
+  Text,
   StyleSheet,
-  ActivityIndicator,
   Alert,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useThemeContext } from "../theme/ThemeProvider";
-import CustomInputField from "../components/ui/CustomInputField";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { PriceListProduct } from "../types/types";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import {
   addPriceListProduct,
   updatePriceListProduct,
-} from "../services/productService";
+} from "../services/priceListService";
+import { InnerStackParamList } from "../navigation/StackNavigator";
 
-interface Props {
-  product?: PriceListProduct;
-}
+type NavigationProp = NativeStackNavigationProp<InnerStackParamList>;
 
-const PriceListProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
-  const { colors } = useThemeContext();
-  const styles = useMemo(() => getStyles(colors), [colors]);
-  const navigation = useNavigation();
+export default function PriceListProductAddOrUpdateScreen() {
+  const navigation = useNavigation<NavigationProp>();
+  const route = useRoute();
+  const { product } = route.params as { product?: PriceListProduct };
 
-  const [form, setForm] = useState({
-    name: "",
-    price1: "",
-    price2: "",
-    price3: "",
-    vendor: "",
-  });
+  const [name, setName] = useState(product?.name || "");
+  const [price1, setPrice1] = useState(product?.price1?.toString() || "");
+  const [price2, setPrice2] = useState(product?.price2?.toString() || "");
+  const [price3, setPrice3] = useState(product?.price3?.toString() || "");
+  const [vendorName, setVendorName] = useState(product?.vendorName || "");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (product) {
-      setForm({
-        name: product.name || "",
-        price1: product.price1?.toString() || "",
-        price2: product.price2?.toString() || "",
-        price3: product.price3?.toString() || "",
-        vendor: product.vendorName || "",
-      });
-    } else resetForm();
-  }, [product]);
+  const handleSave = async () => {
+    if (!name.trim() || !vendorName.trim() || !price1.trim()) {
+      Alert.alert("Error", "Name, Vendor, and Price1 are required");
+      return;
+    }
 
-  const resetForm = useCallback(
-    () => setForm({ name: "", price1: "", price2: "", price3: "", vendor: "" }),
-    []
-  );
-
-  const handleChange = (key: string, value: string) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
-
-  const handleSubmit = async () => {
-    if (!form.name.trim())
-      return Alert.alert("Validation", "Please enter product name.");
     const productData: PriceListProduct = {
-      id: product?.id ?? Math.random().toString(),
-      name: form.name.trim(),
-      price1: parseFloat(form.price1) || 0,
-      price2: parseFloat(form.price2) || 0,
-      price3: parseFloat(form.price3) || 0,
-      vendorName: form.vendor.trim() || "Unknown Vendor",
+      _id: product?._id,
+      name: name.trim(),
+      vendorName: vendorName.trim(),
+      price1: parseFloat(price1) || 0,
+      price2: price2 ? parseFloat(price2) : undefined,
+      price3: price3 ? parseFloat(price3) : undefined,
     };
 
     try {
       setLoading(true);
-      if (product?.id) await updatePriceListProduct(productData);
-      else await addPriceListProduct(productData);
+      let response: PriceListProduct;
 
-      Alert.alert(
-        "Success",
-        `Product ${product?.id ? "updated" : "added"} successfully!`
-      );
-      resetForm();
-      navigation.goBack();
+      if (product?._id) {
+        response = await updatePriceListProduct(productData);
+        Alert.alert("Updated", "Product updated successfully");
+      } else {
+        response = await addPriceListProduct(productData);
+        Alert.alert("Added", "Product added successfully");
+      }
+
+      // Navigate back to PriceList and pass the updated product for real-time update
+      navigation.navigate("PriceList", { updatedProduct: response });
     } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to save product. Please try again.");
+      console.error("Error saving product", error);
+      Alert.alert("Error", "Could not save product");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={{ flexGrow: 1, padding: 20 }}
-      enableOnAndroid
-      extraScrollHeight={120}
-      keyboardShouldPersistTaps="handled"
-    >
-      <CustomInputField
-        label="Name"
-        placeholder="Enter Name"
-        value={form.name}
-        onChangeText={(text) => handleChange("name", text)}
+    <ScrollView contentContainerStyle={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Product Name"
+        value={name}
+        onChangeText={setName}
       />
-      <CustomInputField
-        label="Price 1"
-        placeholder="Enter Price 1"
-        keyboardType="decimal-pad"
-        value={form.price1}
-        onChangeText={(text) => handleChange("price1", text)}
+      <TextInput
+        style={styles.input}
+        placeholder="Vendor Name"
+        value={vendorName}
+        onChangeText={setVendorName}
       />
-      <CustomInputField
-        label="Price 2"
-        placeholder="Enter Price 2"
-        keyboardType="decimal-pad"
-        value={form.price2}
-        onChangeText={(text) => handleChange("price2", text)}
+      <TextInput
+        style={styles.input}
+        placeholder="Price 1"
+        value={price1}
+        onChangeText={setPrice1}
+        keyboardType="numeric"
       />
-      <CustomInputField
-        label="Price 3"
-        placeholder="Enter Price 3"
-        keyboardType="decimal-pad"
-        value={form.price3}
-        onChangeText={(text) => handleChange("price3", text)}
+      <TextInput
+        style={styles.input}
+        placeholder="Price 2"
+        value={price2}
+        onChangeText={setPrice2}
+        keyboardType="numeric"
       />
-      <CustomInputField
-        label="Vendor"
-        placeholder="Enter Vendor Name"
-        value={form.vendor}
-        onChangeText={(text) => handleChange("vendor", text)}
+      <TextInput
+        style={styles.input}
+        placeholder="Price 3"
+        value={price3}
+        onChangeText={setPrice3}
+        keyboardType="numeric"
       />
-
-      <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => navigation.goBack()}
-          disabled={loading}
-        >
-          <Text style={[styles.buttonText, { color: colors.primary }]}>
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.submitButton}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={colors.pureWhite} />
-          ) : (
-            <Text style={styles.buttonText}>
-              {product ? "Update" : "Add"} Product
-            </Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAwareScrollView>
+      <TouchableOpacity
+        style={[styles.button, loading && { opacity: 0.6 }]}
+        onPress={handleSave}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>{product ? "Update" : "Add"}</Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
   );
-};
+}
 
-export default PriceListProductAddOrUpdateScreen;
-
-const getStyles = (colors: any) =>
-  StyleSheet.create({
-    buttonRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: 20,
-      gap: 12,
-    },
-    submitButton: {
-      flex: 1,
-      paddingVertical: 14,
-      borderRadius: 10,
-      alignItems: "center",
-      backgroundColor: colors.primary,
-    },
-    cancelButton: {
-      flex: 1,
-      paddingVertical: 14,
-      borderRadius: 10,
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: colors.primary,
-    },
-    buttonText: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: colors.pureWhite,
-      textAlign: "center",
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    padding: 16,
+    backgroundColor: "#fff",
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+    borderColor: "#ccc",
+  },
+  button: {
+    backgroundColor: "#28a745",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+});

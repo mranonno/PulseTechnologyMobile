@@ -1,6 +1,5 @@
-// types.ts
 export interface Product {
-  id?: string;
+  _id?: string;
   name: string;
   productModel: string;
   productOrigin: string;
@@ -10,17 +9,18 @@ export interface Product {
   image?: string | { uri: string; name?: string; type?: string };
   createdAt?: string;
 }
+
 export interface PriceListProduct {
-  id: string; // Unique identifier for the product
-  name: string; // Product name
-  price1?: number; // Optional first price
-  price2?: number; // Optional second price
-  price3?: number; // Optional third price
-  vendorName: string; // Vendor name (required)
+  _id?: string;
+  name: string;
+  price1?: number;
+  price2?: number;
+  price3?: number;
+  vendorName: string;
 }
 
 export interface SoldProduct {
-  id?: string;
+  _id?: string;
   name: string;
   productModel: string;
   price: number;
@@ -28,6 +28,7 @@ export interface SoldProduct {
   image?: string | { uri: string; name?: string; type?: string };
   createdAt?: string;
 }
+
 export interface GetAllProductsResponse {
   message: string;
   products: Product[];

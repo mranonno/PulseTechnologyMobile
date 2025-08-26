@@ -11,14 +11,20 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { getAllProducts } from "../services/productService";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import PriceListCard from "../components/PriceListCard";
+import {
+  getAllPriceListProducts,
+  deletePriceListProduct,
+} from "../services/priceListService";
 import { PriceListProduct } from "../types/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { InnerStackParamList } from "../navigation/StackNavigator";
 
-// Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
   React.useEffect(() => {
@@ -28,23 +34,9 @@ function useDebounce<T>(value: T, delay: number): T {
   return debounced;
 }
 
-// Normalize API product to PriceListProduct
-const normalizeProduct = (p: any): PriceListProduct => {
-  const id = p._id ? String(p._id) : Math.random().toString(); // Ensure id is string
-  return {
-    id,
-    name: p.name ?? "Unnamed Product",
-    price1: p.price1 ?? p.price ?? undefined,
-    price2: p.price2 ?? undefined,
-    price3: p.price3 ?? undefined,
-    vendorName: p.vendorName ?? "Unknown Vendor",
-  };
-};
-
 const PriceListScreen: React.FC = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
-
   const [products, setProducts] = useState<PriceListProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,13 +44,12 @@ const PriceListScreen: React.FC = () => {
 
   const navigation =
     useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
+  const route = useRoute();
 
-  // Navigate to Add/Edit screen
-  const openAddScreen = () => {
-    navigation.navigate("PriceListProductOrUpdate");
+  const openAddScreen = (product?: PriceListProduct) => {
+    navigation.navigate("PriceListProductOrUpdate", { product });
   };
 
-  // Filter products by search
   const filteredProducts = useMemo(() => {
     const q = debouncedSearchQuery.toLowerCase().trim();
     return q
@@ -66,21 +57,46 @@ const PriceListScreen: React.FC = () => {
       : products;
   }, [debouncedSearchQuery, products]);
 
-  // Fetch products from API
   const fetchAllProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getAllProducts();
-      const normalized = (response.products || []).map(normalizeProduct);
-      setProducts(normalized);
+      const response = await getAllPriceListProducts();
+      setProducts(response);
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Failed to fetch products.");
+      Alert.alert("Error", err.message || "Failed to fetch price list.");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Refresh products on screen focus
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePriceListProduct(id);
+      setProducts((prev) => prev.filter((p) => p._id !== id));
+    } catch {
+      Alert.alert("Error", "Failed to delete product.");
+    }
+  };
+
+  // Update product if returning from Add/Update screen
+  React.useEffect(() => {
+    const updatedProduct = (route.params as any)?.updatedProduct as
+      | PriceListProduct
+      | undefined;
+    if (updatedProduct) {
+      setProducts((prev) => {
+        const index = prev.findIndex((p) => p._id === updatedProduct._id);
+        if (index !== -1) {
+          const newProducts = [...prev];
+          newProducts[index] = updatedProduct;
+          return newProducts;
+        } else {
+          return [updatedProduct, ...prev];
+        }
+      });
+    }
+  }, [route.params]);
+
   useFocusEffect(
     useCallback(() => {
       fetchAllProducts();
@@ -89,7 +105,6 @@ const PriceListScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Search + Add */}
       <View style={styles.searchAndAddContainer}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={colors.mutedText} />
@@ -103,24 +118,29 @@ const PriceListScreen: React.FC = () => {
         </View>
         <TouchableOpacity
           style={styles.addNewButton}
-          onPress={openAddScreen}
+          onPress={() => openAddScreen()}
           disabled={loading}
         >
           <Text style={styles.addNewButtonText}>Add New</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Product List */}
       {loading && products.length === 0 ? (
         <ActivityIndicator size="large" color={colors.primary} />
       ) : (
         <FlatList
           data={filteredProducts}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <PriceListCard product={item} />}
+          keyExtractor={(item) => item._id!}
+          renderItem={({ item }) => (
+            <PriceListCard
+              product={item}
+              onDelete={() => handleDelete(item._id!)}
+              onEdit={() => openAddScreen(item)}
+            />
+          )}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={() => (
-            <Text style={styles.emptyText}>No products found.</Text>
+            <Text style={styles.emptyText}>No price list found.</Text>
           )}
           refreshing={loading}
           onRefresh={fetchAllProducts}

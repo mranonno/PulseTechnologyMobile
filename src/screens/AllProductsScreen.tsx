@@ -89,7 +89,7 @@ const AllProductsScreen = () => {
           setLoading(true);
           try {
             await deleteProduct(id);
-            setProducts((prev) => prev.filter((p) => p.id !== id));
+            setProducts((prev) => prev.filter((p) => p._id !== id));
             Alert.alert("Deleted", "Product deleted successfully.");
           } catch (err: any) {
             Alert.alert("Error", err.message || "Failed to delete product.");
@@ -136,7 +136,7 @@ const AllProductsScreen = () => {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id ?? Math.random().toString()}
+          keyExtractor={(item) => item._id ?? Math.random().toString()}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
@@ -147,7 +147,7 @@ const AllProductsScreen = () => {
             <ProductCard
               product={item}
               onEdit={() => openEditScreen(item)}
-              onDelete={() => handleDelete(item.id!)}
+              onDelete={() => handleDelete(item._id!)}
             />
           )}
         />

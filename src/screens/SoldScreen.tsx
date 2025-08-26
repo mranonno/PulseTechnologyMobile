@@ -99,11 +99,11 @@ const SoldScreen = () => {
       try {
         let savedProduct: Product;
 
-        if (product.id) {
+        if (product._id) {
           savedProduct = await updateProduct(product);
           savedProduct = normalizeProduct(savedProduct);
           setProducts((prev) =>
-            prev.map((p) => (p.id === product.id ? savedProduct : p))
+            prev.map((p) => (p._id === product._id ? savedProduct : p))
           );
           Alert.alert("Success", "Product updated.");
         } else {
@@ -134,7 +134,7 @@ const SoldScreen = () => {
           setLoading(true);
           try {
             await deleteProduct(id);
-            setProducts((prev) => prev.filter((p) => p.id !== id));
+            setProducts((prev) => prev.filter((p) => p._id !== id));
             Alert.alert("Deleted", "Product deleted successfully.");
           } catch (err: any) {
             Alert.alert("Error", err.message || "Failed to delete product.");
@@ -181,7 +181,7 @@ const SoldScreen = () => {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id ?? Math.random().toString()}
+          keyExtractor={(item) => item._id ?? Math.random().toString()}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
@@ -192,7 +192,7 @@ const SoldScreen = () => {
             <SoldProductCard
               product={item}
               onEdit={() => openEditModal(item)}
-              onDelete={() => handleDelete(item.id!)}
+              onDelete={() => handleDelete(item._id!)}
             />
           )}
         />

@@ -19,7 +19,7 @@ export type InnerStackParamList = {
   AllProducts: undefined;
   AddOrUpdateProduct: { product?: Product } | undefined;
   UpdateCheck: undefined;
-  PriceList: undefined;
+  PriceList: { updatedProduct?: PriceListProduct } | undefined; // ✅ updated for real-time
   PriceListProductOrUpdate: { product?: PriceListProduct } | undefined;
 };
 
@@ -72,6 +72,7 @@ const StackNavigator: React.FC<Props> = ({ isLoggedIn }) => {
 
           <Stack.Screen
             name="PriceListProductOrUpdate"
+            component={PriceListProductAddOrUpdateScreen}
             options={({ route, navigation }) => ({
               headerShown: true,
               header: () =>
@@ -80,13 +81,7 @@ const StackNavigator: React.FC<Props> = ({ isLoggedIn }) => {
                   navigation
                 ),
             })}
-          >
-            {({ route }) => (
-              <PriceListProductAddOrUpdateScreen
-                product={route.params?.product}
-              />
-            )}
-          </Stack.Screen>
+          />
 
           <Stack.Screen
             name="PriceList"

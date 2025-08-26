@@ -149,7 +149,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
       : image;
 
     const productData: Product = {
-      id: product?.id ?? undefined,
+      _id: product?._id ?? undefined,
       name: form.name.trim(),
       productModel: form.model.trim(),
       productOrigin: form.origin.trim(),
@@ -161,7 +161,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
 
     try {
       setLoading(true);
-      if (product?.id) {
+      if (product?._id) {
         await updateProduct(productData);
         Alert.alert("Success", "Product updated successfully!");
       } else {

@@ -1,25 +1,8 @@
 import axios from "axios";
-import {
-  GetAllProductsResponse,
-  PriceListProduct,
-  Product,
-} from "../types/types";
+import { GetAllProductsResponse, Product } from "../types/types";
 
 const API_BASE = "https://pulse-technology-server.vercel.app";
 console.log(API_BASE);
-
-const buildPriceListFormData = (product: PriceListProduct) => {
-  const formData = new FormData();
-  formData.append("name", product.name);
-  if (product.price1 !== undefined)
-    formData.append("price1", String(product.price1));
-  if (product.price2 !== undefined)
-    formData.append("price2", String(product.price2));
-  if (product.price3 !== undefined)
-    formData.append("price3", String(product.price3));
-  if (product.vendorName) formData.append("vendorName", product.vendorName);
-  return formData;
-};
 
 const getAuthHeaders = async () => {
   //   const token = await AsyncStorage.getItem("authToken");
@@ -50,39 +33,15 @@ export const addProduct = async (product: Product): Promise<Product> => {
   return data;
 };
 
-export const addPriceListProduct = async (product: PriceListProduct) => {
-  const headers = { ...(await getAuthHeaders()) };
-  const formData = buildPriceListFormData(product);
-  const { data } = await axios.post(
-    `${API_BASE}/api/price-list-products`,
-    formData,
-    {
-      headers,
-    }
-  );
-  return data;
-};
-
 export const updateProduct = async (product: Product): Promise<Product> => {
-  if (!product.id) throw new Error("Product ID required for update.");
+  if (!product._id) throw new Error("Product ID required for update.");
   const headers = {
     ...(await getAuthHeaders()),
     "Content-Type": "multipart/form-data",
   };
   const formData = buildFormData(product);
   const { data } = await axios.put(
-    `${API_BASE}/api/products/${product.id}`,
-    formData,
-    { headers }
-  );
-  return data;
-};
-export const updatePriceListProduct = async (product: PriceListProduct) => {
-  if (!product.id) throw new Error("Product ID required for update.");
-  const headers = { ...(await getAuthHeaders()) };
-  const formData = buildPriceListFormData(product);
-  const { data } = await axios.put(
-    `${API_BASE}/api/price-list-products/${product.id}`,
+    `${API_BASE}/api/products/${product._id}`,
     formData,
     { headers }
   );
