@@ -12,6 +12,7 @@ import CustomHeader from "../components/CustomHeader";
 import { useThemeContext } from "../theme/ThemeProvider";
 import { Product, PriceListProduct } from "../types/types";
 import PriceListProductAddOrUpdateScreen from "../screens/PriceListProductAddOrUploadScreen";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export type InnerStackParamList = {
   Login: undefined;
@@ -19,18 +20,20 @@ export type InnerStackParamList = {
   AllProducts: undefined;
   AddOrUpdateProduct: { product?: Product } | undefined;
   UpdateCheck: undefined;
-  PriceList: { updatedProduct?: PriceListProduct } | undefined; // ✅ updated for real-time
+  PriceList: { updatedProduct?: PriceListProduct } | undefined;
   PriceListProductOrUpdate: { product?: PriceListProduct } | undefined;
 };
 
 const Stack = createNativeStackNavigator<InnerStackParamList>();
 
 type Props = { isLoggedIn: boolean };
+type NavigationType = NativeStackNavigationProp<InnerStackParamList>;
 
 const StackNavigator: React.FC<Props> = ({ isLoggedIn }) => {
   const { colors } = useThemeContext();
 
-  const renderHeader = (title: string, navigation: any) => (
+  // Reusable header function
+  const renderHeader = (title: string, navigation: NavigationType) => (
     <CustomHeader
       title={title}
       leftComponent={
@@ -41,6 +44,19 @@ const StackNavigator: React.FC<Props> = ({ isLoggedIn }) => {
       borderBottom
     />
   );
+
+  // Screens that require custom header
+  const renderAddOrUpdateOptions = (
+    route: any,
+    navigation: NavigationType
+  ) => ({
+    headerShown: true,
+    header: () =>
+      renderHeader(
+        route.params?.product ? "Update Product" : "Add Product",
+        navigation
+      ),
+  });
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -56,42 +72,28 @@ const StackNavigator: React.FC<Props> = ({ isLoggedIn }) => {
 
           <Stack.Screen
             name="AddOrUpdateProduct"
-            options={({ route, navigation }) => ({
-              headerShown: true,
-              header: () =>
-                renderHeader(
-                  route.params?.product ? "Update Product" : "Add Product",
-                  navigation
-                ),
-            })}
-          >
-            {({ route }) => (
-              <ProductAddOrUpdateScreen product={route.params?.product} />
-            )}
-          </Stack.Screen>
+            component={ProductAddOrUpdateScreen}
+            options={({ route, navigation }) =>
+              renderAddOrUpdateOptions(route, navigation)
+            }
+          />
 
           <Stack.Screen
             name="PriceListProductOrUpdate"
             component={PriceListProductAddOrUpdateScreen}
-            options={({ route, navigation }) => ({
-              headerShown: true,
-              header: () =>
-                renderHeader(
-                  route.params?.product ? "Update Product" : "Add Product",
-                  navigation
-                ),
-            })}
+            options={({ route, navigation }) =>
+              renderAddOrUpdateOptions(route, navigation)
+            }
           />
 
           <Stack.Screen
             name="PriceList"
             component={PriceListScreen}
-            options={{
+            options={({ navigation }) => ({
               headerShown: true,
-              header: () => (
-                <CustomHeader title="Price List" shadow borderBottom />
-              ),
-            }}
+              header: () =>
+                renderHeader("Price List", navigation as NavigationType),
+            })}
           />
 
           <Stack.Screen name="UpdateCheck" component={UpdateCheckScreen} />
