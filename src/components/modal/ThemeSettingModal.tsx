@@ -4,6 +4,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../../theme/ThemeProvider";
 import GlobalBottomSheetModal from "./GlobalBottomSheetModal";
+import { Colors } from "../../types/global";
 
 type ThemeOption = {
   key: "system" | "light" | "dark";

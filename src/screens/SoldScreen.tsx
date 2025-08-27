@@ -27,6 +27,7 @@ import {
 } from "../services/productService";
 import SoldProductCard from "../components/SoldProductCard";
 import AddSoldProductModal from "../components/modal/AddSoldProductModal";
+import { Colors } from "../types/global";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -210,7 +211,7 @@ const SoldScreen = () => {
 
 export default SoldScreen;
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       flex: 1,

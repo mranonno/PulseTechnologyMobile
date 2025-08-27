@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
 import ServiceProductCard from "../components/ServiceProductCard";
+import { Colors } from "../types/global";
 
 type Service = {
   id: string;
@@ -101,7 +102,7 @@ const ServiceScreen = () => {
 
 export default ServiceScreen;
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       flex: 1,

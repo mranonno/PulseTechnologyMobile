@@ -12,6 +12,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import GlobalBottomSheetModal from "./GlobalBottomSheetModal";
 import { useThemeContext } from "../../theme/ThemeProvider";
+import { Colors } from "../../types/global";
 
 const AddProductServiceModal = forwardRef<BottomSheetModal>((_, ref) => {
   const { colors } = useThemeContext();
@@ -224,7 +225,7 @@ const AddProductServiceModal = forwardRef<BottomSheetModal>((_, ref) => {
 
 export default AddProductServiceModal;
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       paddingBottom: 40,
@@ -267,7 +268,7 @@ const getStyles = (colors: any) =>
       marginHorizontal: 4,
     },
     buttonText: {
-      color: "#fff",
+      color: colors.pureWhite,
       fontSize: 16,
       fontWeight: "bold",
     },

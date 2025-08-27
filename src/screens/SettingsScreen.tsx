@@ -9,6 +9,7 @@ import NavigationService from "../navigation/NavigationService";
 import { useNavigation } from "@react-navigation/native";
 import { InnerStackParamList } from "../navigation/StackNavigator";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Colors } from "../types/global";
 
 const SettingItem = React.memo(
   ({

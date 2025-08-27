@@ -17,6 +17,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { addProduct, updateProduct } from "../services/productService";
 import { InnerStackParamList } from "../navigation/StackNavigator";
+import { Colors } from "../types/global";
 
 export type ProductImage =
   | { uri: string; name?: string; type?: string }
@@ -311,7 +312,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = () => {
 
 export default ProductAddOrUpdateScreen;
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     imageContainer: { marginBottom: 16 },
     imageButton: {

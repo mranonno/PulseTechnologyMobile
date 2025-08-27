@@ -7,6 +7,7 @@ import {
   Text,
 } from "react-native";
 import { useThemeContext } from "../../theme/ThemeProvider";
+import { Colors } from "../../types/global";
 
 interface CustomInputFieldProps extends TextInputProps {
   value: string;

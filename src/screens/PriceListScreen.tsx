@@ -24,6 +24,7 @@ import {
 import { PriceListProduct } from "../types/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { InnerStackParamList } from "../navigation/StackNavigator";
+import { Colors } from "../types/global";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -152,7 +153,7 @@ const PriceListScreen: React.FC = () => {
 
 export default PriceListScreen;
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       flex: 1,

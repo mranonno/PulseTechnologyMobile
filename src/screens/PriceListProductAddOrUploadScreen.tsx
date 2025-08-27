@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import {
-  View,
-  TextInput,
   TouchableOpacity,
   Text,
   StyleSheet,
@@ -17,34 +15,65 @@ import {
   updatePriceListProduct,
 } from "../services/priceListService";
 import { InnerStackParamList } from "../navigation/StackNavigator";
+import CustomInputField from "../components/ui/CustomInputField";
+import { useThemeContext } from "../theme/ThemeProvider";
+import { Colors } from "../types/global";
 
 type NavigationProp = NativeStackNavigationProp<InnerStackParamList>;
+
+const fields = [
+  {
+    key: "name",
+    label: "Product Name",
+    keyboardType: "default",
+    required: true,
+  },
+  {
+    key: "vendorName",
+    label: "Vendor Name",
+    keyboardType: "default",
+  },
+  { key: "price1", label: "Price 1", keyboardType: "numeric", required: true },
+  { key: "price2", label: "Price 2", keyboardType: "numeric" },
+  { key: "price3", label: "Price 3", keyboardType: "numeric" },
+];
 
 export default function PriceListProductAddOrUpdateScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { product } = route.params as { product?: PriceListProduct };
 
-  const [name, setName] = useState(product?.name || "");
-  const [price1, setPrice1] = useState(product?.price1?.toString() || "");
-  const [price2, setPrice2] = useState(product?.price2?.toString() || "");
-  const [price3, setPrice3] = useState(product?.price3?.toString() || "");
-  const [vendorName, setVendorName] = useState(product?.vendorName || "");
+  const { colors } = useThemeContext();
+  const styles = getStyles(colors);
+
+  // single form state object
+  const [form, setForm] = useState({
+    name: product?.name || "",
+    vendorName: product?.vendorName || "",
+    price1: product?.price1?.toString() || "",
+    price2: product?.price2?.toString() || "",
+    price3: product?.price3?.toString() || "",
+  });
+
   const [loading, setLoading] = useState(false);
 
+  const handleChange = (key: string, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
   const handleSave = async () => {
-    if (!name.trim() || !vendorName.trim() || !price1.trim()) {
+    if (!form.name.trim() || !form.vendorName.trim() || !form.price1.trim()) {
       Alert.alert("Error", "Name, Vendor, and Price1 are required");
       return;
     }
 
     const productData: PriceListProduct = {
       _id: product?._id,
-      name: name.trim(),
-      vendorName: vendorName.trim(),
-      price1: parseFloat(price1) || 0,
-      price2: price2 ? parseFloat(price2) : undefined,
-      price3: price3 ? parseFloat(price3) : undefined,
+      name: form.name.trim(),
+      vendorName: form.vendorName.trim(),
+      price1: parseFloat(form.price1) || 0,
+      price2: form.price2 ? parseFloat(form.price2) : undefined,
+      price3: form.price3 ? parseFloat(form.price3) : undefined,
     };
 
     try {
@@ -59,7 +88,7 @@ export default function PriceListProductAddOrUpdateScreen() {
         Alert.alert("Added", "Product added successfully");
       }
 
-      // Navigate back to PriceList and pass the updated product for real-time update
+      // Navigate back to PriceList and pass updated product
       navigation.navigate("PriceList", { updatedProduct: response });
     } catch (error) {
       console.error("Error saving product", error);
@@ -71,77 +100,52 @@ export default function PriceListProductAddOrUpdateScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Product Name"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Vendor Name"
-        value={vendorName}
-        onChangeText={setVendorName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Price 1"
-        value={price1}
-        onChangeText={setPrice1}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Price 2"
-        value={price2}
-        onChangeText={setPrice2}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Price 3"
-        value={price3}
-        onChangeText={setPrice3}
-        keyboardType="numeric"
-      />
+      {fields.map((f) => (
+        <CustomInputField
+          key={f.key}
+          required={f.required}
+          label={f.label}
+          placeholder={`Enter ${f.label}`}
+          value={form[f.key as keyof typeof form]}
+          onChangeText={(text) => handleChange(f.key, text)}
+          keyboardType={f.keyboardType as any}
+        />
+      ))}
+
       <TouchableOpacity
         style={[styles.button, loading && { opacity: 0.6 }]}
         onPress={handleSave}
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.primary} />
         ) : (
-          <Text style={styles.buttonText}>{product ? "Update" : "Add"}</Text>
+          <Text style={styles.buttonText}>
+            {product ? "Update" : "Add"} Product
+          </Text>
         )}
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 16,
-    backgroundColor: "#fff",
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 12,
-    borderColor: "#ccc",
-  },
-  button: {
-    backgroundColor: "#28a745",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-});
+const getStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      padding: 16,
+      backgroundColor: colors.background,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      padding: 14,
+      borderRadius: 8,
+      alignItems: "center",
+      marginTop: 8,
+    },
+    buttonText: {
+      color: colors.pureWhite,
+      fontWeight: "bold",
+      fontSize: 16,
+    },
+  });

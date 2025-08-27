@@ -17,6 +17,7 @@ import { getAllProducts, deleteProduct } from "../services/productService";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { InnerStackParamList } from "../navigation/StackNavigator";
+import { Colors } from "../types/global";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -158,7 +159,7 @@ const AllProductsScreen = () => {
 
 export default AllProductsScreen;
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       flex: 1,

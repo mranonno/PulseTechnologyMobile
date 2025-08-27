@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { useThemeContext } from "../theme/ThemeProvider";
+import { Colors } from "../types/global";
 
 type ServiceProductCardProps = {
   title: string;

@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
 import { Product } from "../types/types";
 import { formatDate } from "../utils/commonFunction";
+import { Colors } from "../types/global";
 
 interface ProductCardProps {
   product: Product;

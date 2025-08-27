@@ -11,6 +11,7 @@ import {
 import { useThemeContext } from "../theme/ThemeProvider";
 import { loginUser } from "../services/userService";
 import { useAuth } from "../context/AuthContext";
+import { Colors } from "../types/global";
 
 const LoginScreen: React.FC = () => {
   const { colors } = useThemeContext();
@@ -72,7 +73,7 @@ const LoginScreen: React.FC = () => {
   );
 };
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       flex: 1,

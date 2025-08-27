@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import * as Updates from "expo-updates";
 import { useThemeContext } from "../theme/ThemeProvider";
+import { Colors } from "../types/global";
 
 const UpdateCheckScreen = () => {
   const { colors } = useThemeContext();
@@ -96,7 +97,7 @@ const UpdateCheckScreen = () => {
 
 export default UpdateCheckScreen;
 
-const getStyles = (colors: any) =>
+const getStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       flex: 1,

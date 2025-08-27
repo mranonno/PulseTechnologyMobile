@@ -27,6 +27,7 @@ import { formatDate } from "../../utils/commonFunction";
 import CustomInputField from "../ui/CustomInputField";
 import { Product } from "../../types/types";
 import useBackButtonHandler from "../../hooks/useBackButtonHandler";
+import { Colors } from "../../types/global";
 
 export type Props = {
   product?: Product;
