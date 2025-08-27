@@ -59,6 +59,8 @@ const buildFormData = (product: Product) => {
   formData.append("name", product.name);
 
   // Optional fields
+  if (product.productBrand)
+    formData.append("productBrand", product.productBrand);
   if (product.productModel)
     formData.append("productModel", product.productModel);
   if (product.productOrigin)

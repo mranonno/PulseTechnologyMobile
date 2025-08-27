@@ -1,6 +1,7 @@
 export interface Product {
   _id?: string;
   name: string;
+  productBrand: string;
   productModel: string;
   productOrigin: string;
   description: string;

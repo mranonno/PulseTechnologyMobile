@@ -27,13 +27,24 @@ interface Props {
 }
 
 const fields = [
-  { key: "name", label: "Name", keyboardType: "default", required: true },
-  { key: "model", label: "Model", keyboardType: "default" },
-  { key: "origin", label: "Origin", keyboardType: "default" },
-  { key: "price", label: "Price", keyboardType: "decimal-pad", required: true },
+  {
+    key: "name",
+    label: "Product Name",
+    keyboardType: "default",
+    required: true,
+  },
+  { key: "brand", label: "Product Brand", keyboardType: "default" },
+  { key: "model", label: "Product Model", keyboardType: "default" },
+  { key: "origin", label: "Product Origin", keyboardType: "default" },
+  {
+    key: "price",
+    label: "Product Price",
+    keyboardType: "decimal-pad",
+    required: true,
+  },
   {
     key: "quantity",
-    label: "Quantity",
+    label: "Product Quantity",
     keyboardType: "number-pad",
     required: true,
   },
@@ -53,6 +64,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
 
   const [form, setForm] = useState({
     name: "",
+    brand: "",
     model: "",
     origin: "",
     price: "",
@@ -66,6 +78,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
     if (product) {
       setForm({
         name: product.name || "",
+        brand: product.productBrand || "",
         model: product.productModel || "",
         origin: product.productOrigin || "",
         price: product.price?.toString() || "",
@@ -81,6 +94,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
   const resetForm = useCallback(() => {
     setForm({
       name: "",
+      brand: "",
       model: "",
       origin: "",
       price: "",
@@ -151,6 +165,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
     const productData: Product = {
       _id: product?._id ?? undefined,
       name: form.name.trim(),
+      productBrand: form.model.trim(),
       productModel: form.model.trim(),
       productOrigin: form.origin.trim(),
       price: priceNum,
