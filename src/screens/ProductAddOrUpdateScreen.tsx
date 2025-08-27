@@ -14,8 +14,9 @@ import CustomInputField from "../components/ui/CustomInputField";
 import { useThemeContext } from "../theme/ThemeProvider";
 import { Product } from "../types/types";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useNavigation } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { addProduct, updateProduct } from "../services/productService";
+import { InnerStackParamList } from "../navigation/StackNavigator";
 
 export type ProductImage =
   | { uri: string; name?: string; type?: string }
@@ -57,10 +58,14 @@ const fields = [
   },
 ];
 
-const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
+const ProductAddOrUpdateScreen: React.FC<Props> = () => {
   const { colors } = useThemeContext();
   const styles = useMemo(() => getStyles(colors), [colors]);
   const navigation = useNavigation();
+
+  const route =
+    useRoute<RouteProp<InnerStackParamList, "AddOrUpdateProduct">>();
+  const product = route.params?.product;
 
   const [form, setForm] = useState({
     name: "",
@@ -165,7 +170,7 @@ const ProductAddOrUpdateScreen: React.FC<Props> = ({ product }) => {
     const productData: Product = {
       _id: product?._id ?? undefined,
       name: form.name.trim(),
-      productBrand: form.model.trim(),
+      productBrand: form.brand.trim(),
       productModel: form.model.trim(),
       productOrigin: form.origin.trim(),
       price: priceNum,
