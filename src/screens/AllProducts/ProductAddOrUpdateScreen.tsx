@@ -10,14 +10,14 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
-import CustomInputField from "../components/ui/CustomInputField";
-import { useThemeContext } from "../theme/ThemeProvider";
-import { Product } from "../types/types";
+import CustomInputField from "../../components/ui/CustomInputField";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import { Product } from "../../types/types";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { addProduct, updateProduct } from "../services/productService";
-import { InnerStackParamList } from "../navigation/StackNavigator";
-import { Colors } from "../types/global";
+import { addProduct, updateProduct } from "../../services/productService";
+import { InnerStackParamList } from "../../navigation/StackNavigator";
+import { Colors } from "../../types/global";
 
 export type ProductImage =
   | { uri: string; name?: string; type?: string }

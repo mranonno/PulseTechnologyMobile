@@ -9,9 +9,9 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeContext } from "../theme/ThemeProvider";
-import ServiceProductCard from "../components/ServiceProductCard";
-import { Colors } from "../types/global";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import ServiceProductCard from "../../components/ServiceProductCard";
+import { Colors } from "../../types/global";
 
 type Service = {
   id: string;

@@ -8,10 +8,10 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
-import { useThemeContext } from "../theme/ThemeProvider";
-import { loginUser } from "../services/userService";
-import { useAuth } from "../context/AuthContext";
-import { Colors } from "../types/global";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import { loginUser } from "../../services/userService";
+import { useAuth } from "../../context/AuthContext";
+import { Colors } from "../../types/global";
 
 const LoginScreen: React.FC = () => {
   const { colors } = useThemeContext();

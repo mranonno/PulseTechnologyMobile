@@ -1,11 +1,11 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
-import { useThemeContext } from "../theme/ThemeProvider";
+import { useThemeContext } from "../../theme/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HomeStackParamList } from "../navigation/HomeStackNavigator";
-import { Colors } from "../types/global";
+import { HomeStackParamList } from "../../navigation/HomeStackNavigator";
+import { Colors } from "../../types/global";
 
 const HomeScreen = () => {
   const { colors } = useThemeContext();

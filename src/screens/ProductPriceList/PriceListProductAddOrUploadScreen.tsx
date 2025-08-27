@@ -9,15 +9,15 @@ import {
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { PriceListProduct } from "../types/types";
+import { PriceListProduct } from "../../types/types";
 import {
   addPriceListProduct,
   updatePriceListProduct,
-} from "../services/priceListService";
-import { InnerStackParamList } from "../navigation/StackNavigator";
-import CustomInputField from "../components/ui/CustomInputField";
-import { useThemeContext } from "../theme/ThemeProvider";
-import { Colors } from "../types/global";
+} from "../../services/priceListService";
+import { InnerStackParamList } from "../../navigation/StackNavigator";
+import CustomInputField from "../../components/ui/CustomInputField";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import { Colors } from "../../types/global";
 
 type NavigationProp = NativeStackNavigationProp<InnerStackParamList>;
 

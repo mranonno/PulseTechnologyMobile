@@ -10,21 +10,21 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeContext } from "../theme/ThemeProvider";
+import { useThemeContext } from "../../theme/ThemeProvider";
 import {
   useFocusEffect,
   useNavigation,
   useRoute,
 } from "@react-navigation/native";
-import PriceListCard from "../components/PriceListCard";
+import PriceListCard from "../../components/PriceListCard";
 import {
   getAllPriceListProducts,
   deletePriceListProduct,
-} from "../services/priceListService";
-import { PriceListProduct } from "../types/types";
+} from "../../services/priceListService";
+import { PriceListProduct } from "../../types/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { InnerStackParamList } from "../navigation/StackNavigator";
-import { Colors } from "../types/global";
+import { InnerStackParamList } from "../../navigation/StackNavigator";
+import { Colors } from "../../types/global";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);

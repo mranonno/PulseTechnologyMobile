@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import {
   Alert,
   FlatList,
@@ -10,18 +16,22 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeContext } from "../theme/ThemeProvider";
-import ProductCard from "../components/ProductCard";
-import { Product } from "../types/types";
-import { getAllProducts, deleteProduct } from "../services/productService";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { InnerStackParamList } from "../navigation/StackNavigator";
-import { Colors } from "../types/global";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { Product } from "../../types/types";
+import {
+  getAllProducts,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+} from "../../services/productService";
+import SoldProductCard from "../../components/SoldProductCard";
+import AddSoldProductModal from "../../components/modal/AddSoldProductModal";
+import { Colors } from "../../types/global";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = setTimeout(() => setDebouncedValue(value), delay);
     return () => clearTimeout(handler);
   }, [value, delay]);
@@ -33,17 +43,21 @@ const normalizeProduct = (p: any): Product => ({
   id: p._id,
 });
 
-const AllProductsScreen = () => {
+const SoldScreen = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
 
+  const modalRef = useRef<BottomSheetModal>(null);
+
+  const openModal = () => modalRef.current?.present();
+  const closeModal = () => modalRef.current?.close();
+
   const [products, setProducts] = useState<Product[]>([]);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [loading, setLoading] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-
-  const navigation =
-    useNavigation<NativeStackNavigationProp<InnerStackParamList>>();
 
   const filteredProducts = useMemo(() => {
     const q = debouncedSearchQuery.trim().toLowerCase();
@@ -65,20 +79,51 @@ const AllProductsScreen = () => {
     }
   }, []);
 
-  // ✅ Refresh list whenever screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchAllProducts();
-    }, [fetchAllProducts])
+  useEffect(() => {
+    fetchAllProducts();
+  }, [fetchAllProducts]);
+
+  const openAddModal = useCallback(() => {
+    setEditingProduct(undefined);
+    modalRef.current?.present();
+  }, []);
+
+  const openEditModal = useCallback((product: Product) => {
+    setEditingProduct(product);
+    modalRef.current?.present();
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (product: Product) => {
+      console.log(product);
+      setLoading(true);
+      try {
+        let savedProduct: Product;
+
+        if (product._id) {
+          savedProduct = await updateProduct(product);
+          savedProduct = normalizeProduct(savedProduct);
+          setProducts((prev) =>
+            prev.map((p) => (p._id === product._id ? savedProduct : p))
+          );
+          Alert.alert("Success", "Product updated.");
+        } else {
+          savedProduct = await addProduct(product);
+          savedProduct = normalizeProduct(savedProduct);
+          setProducts((prev) => [savedProduct, ...prev]);
+          Alert.alert("Success", "Product added.");
+        }
+        modalRef.current?.dismiss();
+
+        await fetchAllProducts();
+      } catch (err: any) {
+        Alert.alert("Error", err.message || "Failed to save product.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchAllProducts]
   );
-
-  const openAddScreen = () => {
-    navigation.navigate("AddOrUpdateProduct");
-  };
-
-  const openEditScreen = (product: Product) => {
-    navigation.navigate("AddOrUpdateProduct", { product });
-  };
 
   const handleDelete = useCallback((id: string) => {
     Alert.alert("Delete product", "Are you sure?", [
@@ -104,7 +149,7 @@ const AllProductsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchAndNewAddContainer}>
+      <View style={styles.searchAndSoldNewContainer}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={colors.mutedText} />
           <TextInput
@@ -119,12 +164,12 @@ const AllProductsScreen = () => {
         </View>
 
         <TouchableOpacity
-          accessibilityLabel="addNewProduct"
-          onPress={openAddScreen}
+          accessibilityLabel="soldNewButton"
+          onPress={openAddModal}
           disabled={loading}
-          style={styles.addNewButton}
+          style={styles.soldNewButton}
         >
-          <Text style={styles.addNewButtonText}>Add New</Text>
+          <Text style={styles.soldNewButtonText}>Sold New</Text>
         </TouchableOpacity>
       </View>
 
@@ -145,19 +190,26 @@ const AllProductsScreen = () => {
             </View>
           )}
           renderItem={({ item }) => (
-            <ProductCard
+            <SoldProductCard
               product={item}
-              onEdit={() => openEditScreen(item)}
+              onEdit={() => openEditModal(item)}
               onDelete={() => handleDelete(item._id!)}
             />
           )}
         />
       )}
+      <AddSoldProductModal
+        ref={modalRef}
+        loading={loading}
+        onDismiss={closeModal}
+        onSubmit={handleSubmit}
+        product={editingProduct}
+      />
     </View>
   );
 };
 
-export default AllProductsScreen;
+export default SoldScreen;
 
 const getStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -167,7 +219,7 @@ const getStyles = (colors: Colors) =>
       paddingTop: 8,
       backgroundColor: colors.background,
     },
-    searchAndNewAddContainer: {
+    searchAndSoldNewContainer: {
       flexDirection: "row",
       alignItems: "center",
       marginBottom: 8,
@@ -182,7 +234,7 @@ const getStyles = (colors: Colors) =>
       paddingVertical: 8,
       flex: 1,
     },
-    addNewButton: {
+    soldNewButton: {
       backgroundColor: colors.primary,
       paddingHorizontal: 16,
       paddingVertical: 16,
@@ -191,7 +243,7 @@ const getStyles = (colors: Colors) =>
       alignItems: "center",
       minWidth: 100,
     },
-    addNewButtonText: {
+    soldNewButtonText: {
       color: colors.pureWhite,
       fontWeight: "600",
       fontSize: 16,

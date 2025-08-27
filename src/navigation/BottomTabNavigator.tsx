@@ -10,9 +10,9 @@ import { RouteProp } from "@react-navigation/native";
 
 import { useThemeContext } from "../theme/ThemeProvider";
 import HomeStackNavigator from "./HomeStackNavigator";
-import SoldScreen from "../screens/SoldScreen";
-import ServiceScreen from "../screens/ServiceScreen";
-import SettingsScreen from "../screens/SettingsScreen";
+import SoldScreen from "../screens/SoldProduct/SoldScreen";
+import ServiceScreen from "../screens/ServiceProduct/ServiceScreen";
+import SettingsScreen from "../screens/Settings/SettingsScreen";
 import CustomHeader from "../components/CustomHeader";
 
 export type BottomTabParamList = {

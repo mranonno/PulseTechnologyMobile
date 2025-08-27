@@ -1,15 +1,15 @@
 import React, { useCallback, useRef } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeContext } from "../theme/ThemeProvider";
-import ThemeSettingModal from "../components/modal/ThemeSettingModal";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import ThemeSettingModal from "../../components/modal/ThemeSettingModal";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useAuth } from "../context/AuthContext";
-import NavigationService from "../navigation/NavigationService";
+import { useAuth } from "../../context/AuthContext";
+import NavigationService from "../../navigation/NavigationService";
 import { useNavigation } from "@react-navigation/native";
-import { InnerStackParamList } from "../navigation/StackNavigator";
+import { InnerStackParamList } from "../../navigation/StackNavigator";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Colors } from "../types/global";
+import { Colors } from "../../types/global";
 
 const SettingItem = React.memo(
   ({

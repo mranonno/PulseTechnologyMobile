@@ -1,7 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import HomeScreen from "../screens/HomeScreen";
-import AllProductsScreen from "../screens/AllProductsScreen";
+import HomeScreen from "../screens/Home/HomeScreen";
+import AllProductsScreen from "../screens/AllProducts/AllProductsScreen";
 import { useThemeContext } from "../theme/ThemeProvider";
 import CustomHeader from "../components/CustomHeader";
 import { Ionicons } from "@expo/vector-icons";

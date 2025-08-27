@@ -8,8 +8,8 @@ import {
   StyleSheet,
 } from "react-native";
 import * as Updates from "expo-updates";
-import { useThemeContext } from "../theme/ThemeProvider";
-import { Colors } from "../types/global";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import { Colors } from "../../types/global";
 
 const UpdateCheckScreen = () => {
   const { colors } = useThemeContext();

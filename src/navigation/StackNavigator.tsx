@@ -3,15 +3,15 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
 import BottomTabNavigator from "./BottomTabNavigator";
-import AllProductsScreen from "../screens/AllProductsScreen";
-import LoginScreen from "../screens/LoginScreen";
-import ProductAddOrUpdateScreen from "../screens/ProductAddOrUpdateScreen";
-import PriceListScreen from "../screens/PriceListScreen";
-import UpdateCheckScreen from "../screens/UpdateCheckScreen";
+import AllProductsScreen from "../screens/AllProducts/AllProductsScreen";
+import LoginScreen from "../screens/Authentication/LoginScreen";
+import ProductAddOrUpdateScreen from "../screens/AllProducts/ProductAddOrUpdateScreen";
+import PriceListScreen from "../screens/ProductPriceList/PriceListScreen";
+import UpdateCheckScreen from "../screens/Settings/UpdateCheckScreen";
 import CustomHeader from "../components/CustomHeader";
 import { useThemeContext } from "../theme/ThemeProvider";
 import { Product, PriceListProduct } from "../types/types";
-import PriceListProductAddOrUpdateScreen from "../screens/PriceListProductAddOrUploadScreen";
+import PriceListProductAddOrUpdateScreen from "../screens/ProductPriceList/PriceListProductAddOrUploadScreen";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export type InnerStackParamList = {
