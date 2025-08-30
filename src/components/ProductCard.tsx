@@ -1,4 +1,4 @@
-import React, { memo, useRef, useState } from "react";
+import React, { memo, useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   GestureResponderEvent,
   Alert,
+  Modal,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
@@ -32,8 +34,49 @@ const ProductCard: React.FC<ProductCardProps> = memo(
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
     const placeholder = require("../../assets/placeholder.png");
+    const [isPreviewVisible, setPreviewVisible] = useState(false);
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+    /** ------------------------
+     * Animations
+     * -----------------------*/
+    // Card entry animation
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const scaleAnim = useRef(new Animated.Value(0.95)).current;
+
+    // Image press animation
+    const pressAnim = useRef(new Animated.Value(1)).current;
+
+    // Modal preview animation
+    const scalePreview = useRef(new Animated.Value(0.8)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 5,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    useEffect(() => {
+      if (isPreviewVisible) {
+        Animated.spring(scalePreview, {
+          toValue: 1,
+          friction: 6,
+          useNativeDriver: true,
+        }).start();
+      } else {
+        scalePreview.setValue(0.8);
+      }
+    }, [isPreviewVisible]);
 
     const handleOpenModal = () => bottomSheetRef.current?.present();
 
@@ -61,14 +104,48 @@ const ProductCard: React.FC<ProductCardProps> = memo(
       }
     };
 
+    /** ------------------------
+     * Image press handlers
+     * -----------------------*/
+    const handleImagePressIn = () => {
+      Animated.spring(pressAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handleImagePressOut = () => {
+      Animated.spring(pressAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
+      setPreviewVisible(true);
+    };
+
+    const handleClosePreview = () => setPreviewVisible(false);
+
     return (
-      <View style={styles.card}>
+      <Animated.View
+        style={[
+          styles.card,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
         {/* Image */}
-        <Image
-          source={product.image ? { uri: product.image } : placeholder}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        <TouchableOpacity
+          onPressIn={handleImagePressIn}
+          onPressOut={handleImagePressOut}
+          activeOpacity={1}
+        >
+          <Animated.Image
+            source={product.image ? { uri: product.image } : placeholder}
+            style={[styles.image, { transform: [{ scale: pressAnim }] }]}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
 
         {/* Main Info */}
         <View style={styles.infoContainer}>
@@ -131,8 +208,42 @@ const ProductCard: React.FC<ProductCardProps> = memo(
               loading={loading}
             />
           </GlobalBottomSheetModal>
+
+          {/* Image Preview Modal */}
+          <Modal
+            visible={isPreviewVisible}
+            transparent={true}
+            onRequestClose={handleClosePreview}
+          >
+            <View style={styles.modalContainer}>
+              {/* Background tap to close */}
+              <TouchableOpacity
+                style={styles.modalBackground}
+                onPress={handleClosePreview}
+                activeOpacity={1}
+              />
+
+              {/* Close button */}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleClosePreview}
+              >
+                <Ionicons name="close" size={28} color={colors.text} />
+              </TouchableOpacity>
+
+              {/* Image Preview */}
+              <Animated.Image
+                source={product.image ? { uri: product.image } : placeholder}
+                style={[
+                  styles.modalImage,
+                  { transform: [{ scale: scalePreview }] },
+                ]}
+                resizeMode="contain"
+              />
+            </View>
+          </Modal>
         </View>
-      </View>
+      </Animated.View>
     );
   }
 );
@@ -188,6 +299,29 @@ const getStyles = (colors: Colors) =>
       minHeight: 80,
     },
     iconButton: { padding: 2 },
+    modalContainer: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.85)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalBackground: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    modalImage: {
+      width: "90%",
+      height: "70%",
+      borderRadius: 12,
+    },
+    closeButton: {
+      position: "absolute",
+      top: 40,
+      right: 20,
+      zIndex: 10,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      padding: 6,
+      borderRadius: 20,
+    },
   });
 
 export default ProductCard;
