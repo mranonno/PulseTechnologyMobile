@@ -52,6 +52,21 @@ export const deleteProduct = async (id: string) => {
   const headers = await getAuthHeaders();
   await axios.delete(`${API_BASE}/api/products/${id}`, { headers });
 };
+
+export const updateStock = async (
+  id: string,
+  type: "in" | "out",
+  quantity: number
+) => {
+  const headers = await getAuthHeaders();
+  const { data } = await axios.patch(
+    `${API_BASE}/api/products/stock/${id}`,
+    { type, quantity },
+    { headers }
+  );
+  return data;
+};
+
 const buildFormData = (product: Product) => {
   const formData = new FormData();
 

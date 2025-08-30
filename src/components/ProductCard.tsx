@@ -1,4 +1,4 @@
-import React, { memo, useRef } from "react";
+import React, { memo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   GestureResponderEvent,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
@@ -13,8 +14,9 @@ import { Product } from "../types/types";
 import { formatDate } from "../utils/commonFunction";
 import { Colors } from "../types/global";
 import StockUpdateModal from "./modal/StockUpdateModal";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import GlobalBottomSheetModal from "./modal/GlobalBottomSheetModal";
+import { updateStock } from "../services/productService";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 
 interface ProductCardProps {
   product: Product;
@@ -26,18 +28,35 @@ const ProductCard: React.FC<ProductCardProps> = memo(
   ({ product, onEdit, onDelete }) => {
     const { colors } = useThemeContext();
     const styles = getStyles(colors);
+    const [loading, setLoading] = useState(false);
     const placeholder = require("../../assets/placeholder.png");
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-    const handleOpenModal = () => {
-      console.log("Opening modal...");
-      bottomSheetRef.current?.present();
-    };
+    const handleOpenModal = () => bottomSheetRef.current?.present();
 
-    const handleStockSubmit = (type: "in" | "out", qty: number) => {
-      console.log("Stock Update:");
-      bottomSheetRef.current?.dismiss();
+    const handleStockSubmit = async (type: "in" | "out", quantity: number) => {
+      setLoading(true);
+      try {
+        await updateStock(product._id!, type, quantity);
+
+        // Update quantity safely
+        product.quantity =
+          type === "in"
+            ? (product.quantity ?? 0) + quantity
+            : Math.max((product.quantity ?? 0) - quantity, 0);
+
+        Alert.alert(
+          "Success",
+          `Stock ${type === "in" ? "added" : "removed"} successfully!`
+        );
+        bottomSheetRef.current?.dismiss();
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Error", "Failed to update stock. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     return (
@@ -51,24 +70,15 @@ const ProductCard: React.FC<ProductCardProps> = memo(
 
         {/* Main Info */}
         <View style={styles.infoContainer}>
-          <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
+          <Text style={styles.name} numberOfLines={2}>
             {product.name}
           </Text>
-          <Text
-            style={styles.productModel}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
+          <Text style={styles.productModel}>
             Model:{" "}
-            {product.productModel ? (
-              <Text style={styles.productModelText}>
-                {product.productModel}
-              </Text>
-            ) : (
-              <Text style={styles.productModelText}>N/A</Text>
-            )}
+            <Text style={styles.productModelText}>
+              {product.productModel ?? "N/A"}
+            </Text>
           </Text>
-
           <View style={styles.detailsRow}>
             <Text style={styles.detailText}>
               Listed on:{" "}
@@ -79,56 +89,32 @@ const ProductCard: React.FC<ProductCardProps> = memo(
             <Text style={styles.detailText}>
               Stock:{" "}
               <Text style={styles.detailValueText}>
-                {product.quantity !== undefined ? product.quantity : "N/A"}
+                {product.quantity ?? "N/A"}
               </Text>
             </Text>
           </View>
-
           <Text style={styles.priceText}>
-            ৳{product.price !== undefined ? product.price.toFixed(2) : "0.00"}
+            ৳{product.price?.toFixed(2) ?? "0.00"}
           </Text>
         </View>
 
         {/* Action Icons */}
         <View style={styles.actionsContainer}>
-          {/* Stock Update */}
-          <TouchableOpacity
-            onPress={handleOpenModal}
-            style={styles.iconButton}
-            activeOpacity={0.6}
-            accessibilityRole="button"
-            accessibilityLabel={`Update stock for ${product.name}`}
-          >
+          <TouchableOpacity onPress={handleOpenModal} style={styles.iconButton}>
             <Ionicons name="cube-outline" size={24} color={colors.primary} />
           </TouchableOpacity>
-
-          {/* Edit */}
-          <TouchableOpacity
-            onPress={onEdit}
-            style={styles.iconButton}
-            activeOpacity={0.6}
-            accessibilityRole="button"
-            accessibilityLabel={`Edit product ${product.name}`}
-          >
+          <TouchableOpacity onPress={onEdit} style={styles.iconButton}>
             <Ionicons name="create-outline" size={24} color={colors.primary} />
           </TouchableOpacity>
-
-          {/* Delete */}
-          <TouchableOpacity
-            onPress={onDelete}
-            style={styles.iconButton}
-            activeOpacity={0.6}
-            accessibilityRole="button"
-            accessibilityLabel={`Delete product ${product.name}`}
-          >
+          <TouchableOpacity onPress={onDelete} style={styles.iconButton}>
             <Ionicons name="trash-outline" size={24} color={colors.danger} />
           </TouchableOpacity>
 
-          {/* Modal */}
           <GlobalBottomSheetModal ref={bottomSheetRef}>
             <StockUpdateModal
               productName={product.name}
               onSubmit={handleStockSubmit}
+              loading={loading}
             />
           </GlobalBottomSheetModal>
         </View>
@@ -159,54 +145,31 @@ const getStyles = (colors: Colors) =>
       marginRight: 12,
       backgroundColor: colors.imageBackground,
     },
-    infoContainer: {
-      flex: 1,
-      justifyContent: "center",
-    },
+    infoContainer: { flex: 1, justifyContent: "center" },
     name: {
       fontSize: 16,
       fontWeight: "600",
       color: colors.text,
       marginBottom: 4,
     },
-    productModel: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: colors.text,
-    },
-    productModelText: {
-      fontSize: 13,
-      color: colors.mutedText,
-    },
-
-    detailsRow: {
-      flexDirection: "row",
-    },
-    priceRow: {
-      marginTop: 6,
-    },
+    productModel: { fontSize: 13, fontWeight: "600", color: colors.text },
+    productModelText: { fontSize: 13, color: colors.mutedText },
+    detailsRow: { flexDirection: "row", marginTop: 4 },
     detailText: {
       fontWeight: "600",
       marginRight: 12,
       color: colors.text,
       fontSize: 12,
     },
-    detailValueText: {
-      fontSize: 12,
-      color: colors.mutedText,
-    },
+    detailValueText: { fontSize: 12, color: colors.mutedText },
     priceText: {
       fontSize: 14,
       fontWeight: "800",
       color: colors.primary,
+      marginTop: 4,
     },
-    actionsContainer: {
-      justifyContent: "space-between",
-      height: 80,
-    },
-    iconButton: {
-      padding: 4,
-    },
+    actionsContainer: { justifyContent: "space-between", height: 80 },
+    iconButton: { padding: 4 },
   });
 
 export default ProductCard;

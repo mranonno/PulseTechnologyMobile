@@ -5,29 +5,40 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { useThemeContext } from "../../theme/ThemeProvider";
 import { Colors } from "../../types/global";
 
 interface StockUpdateModalProps {
   productName: string;
-  onSubmit: (type: "in" | "out", quantity: number) => void;
+  onSubmit: (type: "in" | "out", quantity: number) => void | Promise<void>;
+  loading: boolean;
 }
 
 const StockUpdateModal: React.FC<StockUpdateModalProps> = ({
   productName,
   onSubmit,
+  loading,
 }) => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
+
   const [type, setType] = useState<"in" | "out">("in");
   const [quantity, setQuantity] = useState("");
 
-  const handleConfirm = useCallback(() => {
-    const qty = parseInt(quantity, 10);
-    if (!isNaN(qty) && qty > 0) {
-      onSubmit(type, qty);
+  const handleConfirm = useCallback(async () => {
+    const qty = Number(quantity);
+    if (qty <= 0) {
+      Alert.alert("Invalid Input", "Please enter a valid quantity.");
+      return;
+    }
+
+    try {
+      await onSubmit(type, qty);
       setQuantity("");
+    } catch (err) {
+      Alert.alert("Error", "Failed to update stock. Please try again.");
     }
   }, [type, quantity, onSubmit]);
 
@@ -35,34 +46,40 @@ const StockUpdateModal: React.FC<StockUpdateModalProps> = ({
     <View style={styles.container}>
       <Text style={styles.title}>{productName}</Text>
 
-      {/* Select Type */}
+      {/* Stock Type Selector */}
       <View style={styles.row}>
-        <TouchableOpacity
-          style={[styles.typeButton, type === "in" && styles.activeButton]}
-          onPress={() => setType("in")}
-        >
-          <Text style={styles.typeText}>Stock In</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.typeButton, type === "out" && styles.activeButton]}
-          onPress={() => setType("out")}
-        >
-          <Text style={styles.typeText}>Stock Out</Text>
-        </TouchableOpacity>
+        {(["in", "out"] as const).map((item) => (
+          <TouchableOpacity
+            key={item}
+            style={[styles.typeButton, type === item && styles.activeButton]}
+            onPress={() => setType(item)}
+          >
+            <Text style={[styles.typeText, type === item && styles.activeText]}>
+              {item === "in" ? "Stock In" : "Stock Out"}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* Quantity */}
+      {/* Quantity Input */}
       <TextInput
         style={styles.input}
-        placeholderTextColor={colors.placeholder}
         placeholder="Enter quantity"
+        placeholderTextColor={colors.placeholder}
         keyboardType="numeric"
         value={quantity}
         onChangeText={setQuantity}
       />
 
-      <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-        <Text style={styles.confirmText}>Confirm</Text>
+      {/* Confirm Button */}
+      <TouchableOpacity
+        style={styles.confirmButton}
+        onPress={handleConfirm}
+        disabled={loading}
+      >
+        <Text style={styles.confirmText}>
+          {loading ? "Confirming..." : "Confirm"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -72,9 +89,7 @@ export default StockUpdateModal;
 
 const getStyles = (colors: Colors) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-    },
+    container: { flex: 1, padding: 16 },
     title: {
       fontSize: 18,
       fontWeight: "bold",
@@ -89,7 +104,6 @@ const getStyles = (colors: Colors) =>
     },
     typeButton: {
       flex: 1,
-
       padding: 12,
       borderRadius: 8,
       borderWidth: 1,
@@ -100,10 +114,8 @@ const getStyles = (colors: Colors) =>
       backgroundColor: colors.primary,
       borderColor: colors.primary,
     },
-    typeText: {
-      color: colors.pureWhite,
-      fontSize: 16,
-    },
+    typeText: { fontSize: 16, color: colors.text },
+    activeText: { color: colors.pureWhite, fontWeight: "600" },
     input: {
       borderWidth: 1,
       borderColor: colors.border,
@@ -118,9 +130,5 @@ const getStyles = (colors: Colors) =>
       borderRadius: 8,
       alignItems: "center",
     },
-    confirmText: {
-      color: colors.pureWhite,
-      fontSize: 16,
-      fontWeight: "bold",
-    },
+    confirmText: { fontSize: 16, fontWeight: "bold", color: colors.pureWhite },
   });
