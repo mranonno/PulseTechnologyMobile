@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useRef } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,9 @@ import { useThemeContext } from "../theme/ThemeProvider";
 import { Product } from "../types/types";
 import { formatDate } from "../utils/commonFunction";
 import { Colors } from "../types/global";
+import StockUpdateModal from "./modal/StockUpdateModal";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import GlobalBottomSheetModal from "./modal/GlobalBottomSheetModal";
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +27,18 @@ const ProductCard: React.FC<ProductCardProps> = memo(
     const { colors } = useThemeContext();
     const styles = getStyles(colors);
     const placeholder = require("../../assets/placeholder.png");
+
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+    const handleOpenModal = () => {
+      console.log("Opening modal...");
+      bottomSheetRef.current?.present();
+    };
+
+    const handleStockSubmit = (type: "in" | "out", qty: number) => {
+      console.log("Stock Update:");
+      bottomSheetRef.current?.dismiss();
+    };
 
     return (
       <View style={styles.card}>
@@ -76,6 +91,18 @@ const ProductCard: React.FC<ProductCardProps> = memo(
 
         {/* Action Icons */}
         <View style={styles.actionsContainer}>
+          {/* Stock Update */}
+          <TouchableOpacity
+            onPress={handleOpenModal}
+            style={styles.iconButton}
+            activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel={`Update stock for ${product.name}`}
+          >
+            <Ionicons name="cube-outline" size={24} color={colors.primary} />
+          </TouchableOpacity>
+
+          {/* Edit */}
           <TouchableOpacity
             onPress={onEdit}
             style={styles.iconButton}
@@ -85,6 +112,8 @@ const ProductCard: React.FC<ProductCardProps> = memo(
           >
             <Ionicons name="create-outline" size={24} color={colors.primary} />
           </TouchableOpacity>
+
+          {/* Delete */}
           <TouchableOpacity
             onPress={onDelete}
             style={styles.iconButton}
@@ -94,6 +123,14 @@ const ProductCard: React.FC<ProductCardProps> = memo(
           >
             <Ionicons name="trash-outline" size={24} color={colors.danger} />
           </TouchableOpacity>
+
+          {/* Modal */}
+          <GlobalBottomSheetModal ref={bottomSheetRef}>
+            <StockUpdateModal
+              productName={product.name}
+              onSubmit={handleStockSubmit}
+            />
+          </GlobalBottomSheetModal>
         </View>
       </View>
     );

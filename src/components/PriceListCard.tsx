@@ -33,10 +33,14 @@ const PriceListCard: React.FC<Props> = ({ product, onDelete, onEdit }) => {
         <Text style={styles.price}>৳{product.price1}</Text>
         {product.price2 ? (
           <Text style={styles.price}>৳{product.price2}</Text>
-        ) : null}
+        ) : (
+          <Text style={styles.price}>-</Text>
+        )}
         {product.price3 ? (
           <Text style={styles.price}>৳{product.price3}</Text>
-        ) : null}
+        ) : (
+          <Text style={styles.price}>-</Text>
+        )}
       </View>
       <Text style={styles.vendor}>
         Vendor: <Text style={styles.vendorName}>{product.vendorName}</Text>
