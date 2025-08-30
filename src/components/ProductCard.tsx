@@ -17,6 +17,7 @@ import StockUpdateModal from "./modal/StockUpdateModal";
 import GlobalBottomSheetModal from "./modal/GlobalBottomSheetModal";
 import { updateStock } from "../services/productService";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useAuth } from "../context/AuthContext";
 
 interface ProductCardProps {
   product: Product;
@@ -29,6 +30,7 @@ const ProductCard: React.FC<ProductCardProps> = memo(
     const { colors } = useThemeContext();
     const styles = getStyles(colors);
     const [loading, setLoading] = useState(false);
+    const { user } = useAuth();
     const placeholder = require("../../assets/placeholder.png");
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -101,14 +103,26 @@ const ProductCard: React.FC<ProductCardProps> = memo(
         {/* Action Icons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity onPress={handleOpenModal} style={styles.iconButton}>
-            <Ionicons name="cube-outline" size={24} color={colors.primary} />
+            <Ionicons
+              name={user?.role === "admin" ? "cube-outline" : "create-outline"}
+              size={24}
+              color={colors.primary}
+            />
           </TouchableOpacity>
-          <TouchableOpacity onPress={onEdit} style={styles.iconButton}>
-            <Ionicons name="create-outline" size={24} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onDelete} style={styles.iconButton}>
-            <Ionicons name="trash-outline" size={24} color={colors.danger} />
-          </TouchableOpacity>
+          {user?.role === "admin" && (
+            <TouchableOpacity onPress={onEdit} style={styles.iconButton}>
+              <Ionicons
+                name="create-outline"
+                size={24}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          )}
+          {user?.role === "admin" && (
+            <TouchableOpacity onPress={onDelete} style={styles.iconButton}>
+              <Ionicons name="trash-outline" size={24} color={colors.danger} />
+            </TouchableOpacity>
+          )}
 
           <GlobalBottomSheetModal ref={bottomSheetRef}>
             <StockUpdateModal
@@ -168,8 +182,12 @@ const getStyles = (colors: Colors) =>
       color: colors.primary,
       marginTop: 4,
     },
-    actionsContainer: { justifyContent: "space-between", height: 80 },
-    iconButton: { padding: 4 },
+    actionsContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: 80,
+    },
+    iconButton: { padding: 2 },
   });
 
 export default ProductCard;

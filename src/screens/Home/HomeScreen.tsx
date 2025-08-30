@@ -6,17 +6,20 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../../navigation/HomeStackNavigator";
 import { Colors } from "../../types/global";
+import { useAuth } from "../../context/AuthContext";
 
 const HomeScreen = () => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
+  const { user } = useAuth();
+  console.log(user);
 
   const navigation =
     useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
-  const profileImage = {
-    uri: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
-  };
+  const profileImage = user?.image
+    ? { uri: user.image }
+    : require("../../../assets/placeholder.png");
 
   return (
     <View style={styles.container}>
@@ -24,11 +27,11 @@ const HomeScreen = () => {
       <View style={styles.profileContainer}>
         <Image source={profileImage} style={styles.avatar} />
         <View style={styles.info}>
-          <Text style={styles.name}>Md. Imran Hossain</Text>
-          <Text style={styles.email}>imran28vii@gmail.com</Text>
+          <Text style={styles.name}>{user?.name}</Text>
+          <Text style={styles.email}>{user?.email}</Text>
           <View style={styles.userIdContainer}>
             <Text style={styles.userIdLabel}>ID:</Text>
-            <Text style={styles.userIdValue}>12345678</Text>
+            <Text style={styles.userIdValue}>{user?.userId}</Text>
           </View>
         </View>
       </View>
@@ -42,6 +45,7 @@ const HomeScreen = () => {
           onPress={() => navigation.navigate("AllProducts")}
           activeOpacity={0.7}
           style={styles.navCard}
+          accessibilityLabel="Navigate to All Products"
         >
           <Ionicons
             name="cube-outline"
@@ -52,6 +56,20 @@ const HomeScreen = () => {
           <Text style={styles.navText}>All Product</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          onPress={() => navigation.navigate("PriceList")}
+          activeOpacity={0.7}
+          style={styles.navCard}
+          accessibilityLabel="Navigate to Price List"
+        >
+          <Ionicons
+            name="pricetag-outline"
+            size={32}
+            color={colors.primary}
+            style={styles.icon}
+          />
+          <Text style={styles.navText}>Price List</Text>
+        </TouchableOpacity>
         <TouchableOpacity activeOpacity={0.7} style={styles.navCard}>
           <Ionicons
             name="arrow-down-circle-outline"
@@ -80,19 +98,6 @@ const HomeScreen = () => {
             style={styles.icon}
           />
           <Text style={styles.navText}>Users</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("PriceList")}
-          activeOpacity={0.7}
-          style={styles.navCard}
-        >
-          <Ionicons
-            name="pricetag-outline"
-            size={32}
-            color={colors.primary}
-            style={styles.icon}
-          />
-          <Text style={styles.navText}>Price List</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { useThemeContext } from "../../theme/ThemeProvider";
 import { Colors } from "../../types/global";
+import { useAuth } from "../../context/AuthContext";
+import { User } from "../../types/types";
 
 interface StockUpdateModalProps {
   productName: string;
@@ -23,8 +25,10 @@ const StockUpdateModal: React.FC<StockUpdateModalProps> = ({
 }) => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
+  const { user } = useAuth();
+  console.log(user);
 
-  const [type, setType] = useState<"in" | "out">("in");
+  const [type, setType] = useState<"in" | "out">("out");
   const [quantity, setQuantity] = useState("");
 
   const handleConfirm = useCallback(async () => {
@@ -48,14 +52,19 @@ const StockUpdateModal: React.FC<StockUpdateModalProps> = ({
 
       {/* Stock Type Selector */}
       <View style={styles.row}>
-        {(["in", "out"] as const).map((item) => (
+        {(["out", "in"] as const).map((item) => (
           <TouchableOpacity
+            disabled={user?.role !== "admin"}
             key={item}
-            style={[styles.typeButton, type === item && styles.activeButton]}
+            style={[
+              styles.typeButton,
+              { opacity: user?.role !== "admin" ? 0.5 : 1 },
+              type === item && styles.activeButton,
+            ]}
             onPress={() => setType(item)}
           >
             <Text style={[styles.typeText, type === item && styles.activeText]}>
-              {item === "in" ? "Stock In" : "Stock Out"}
+              {item === "out" ? "Stock Out" : "Stock In"}
             </Text>
           </TouchableOpacity>
         ))}
@@ -89,7 +98,7 @@ export default StockUpdateModal;
 
 const getStyles = (colors: Colors) =>
   StyleSheet.create({
-    container: { flex: 1, padding: 16 },
+    container: { flex: 1 },
     title: {
       fontSize: 18,
       fontWeight: "bold",

@@ -10,6 +10,7 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { ThemeProvider } from "./src/theme/ThemeProvider";
 import { GlobalProvider } from "./src/context/GlobalContext";
 import Main from "./src/_layout/Main";
+import { AuthProvider } from "./src/context/AuthContext";
 
 export default function App() {
   return (
@@ -17,9 +18,11 @@ export default function App() {
       <SafeAreaProvider>
         <GlobalProvider>
           <ThemeProvider>
-            <BottomSheetModalProvider>
-              <Main />
-            </BottomSheetModalProvider>
+            <AuthProvider>
+              <BottomSheetModalProvider>
+                <Main />
+              </BottomSheetModalProvider>
+            </AuthProvider>
           </ThemeProvider>
         </GlobalProvider>
       </SafeAreaProvider>

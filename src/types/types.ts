@@ -35,3 +35,13 @@ export interface GetAllProductsResponse {
   products: Product[];
   total: number;
 }
+
+export interface User {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  image: string | { uri: string; name?: string; type?: string };
+  role: "admin" | "user";
+  createdAt: string;
+}

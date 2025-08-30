@@ -6,11 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-interface User {
-  id: string;
-  name: string;
-}
+import { User } from "../types/types";
 
 interface AuthContextType {
   isLoggedIn: boolean | null;
