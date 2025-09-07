@@ -33,9 +33,9 @@ const fields = [
     label: "Vendor Name",
     keyboardType: "default",
   },
-  { key: "price1", label: "Price 1", keyboardType: "numeric", required: true },
-  { key: "price2", label: "Price 2", keyboardType: "numeric" },
-  { key: "price3", label: "Price 3", keyboardType: "numeric" },
+  { key: "price1", label: "Price 1", keyboardType: "default", required: true },
+  { key: "price2", label: "Price 2", keyboardType: "default" },
+  { key: "price3", label: "Price 3", keyboardType: "default" },
 ];
 
 export default function PriceListProductAddOrUpdateScreen() {
@@ -71,9 +71,9 @@ export default function PriceListProductAddOrUpdateScreen() {
       _id: product?._id,
       name: form.name.trim(),
       vendorName: form.vendorName.trim(),
-      price1: parseFloat(form.price1) || 0,
-      price2: form.price2 ? parseFloat(form.price2) : undefined,
-      price3: form.price3 ? parseFloat(form.price3) : undefined,
+      price1: form.price1 || "0",
+      price2: form.price2 ? form.price2 : undefined,
+      price3: form.price3 ? form.price3 : undefined,
     };
 
     try {

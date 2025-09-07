@@ -1,4 +1,3 @@
-// src/screens/UpdateCheckScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -26,7 +25,9 @@ const UpdateCheckScreen = () => {
     try {
       const update = await Updates.checkForUpdateAsync();
       setDebugInfo(
-        `Runtime: ${Updates.runtimeVersion}\nURL: ${(Updates as any).updateUrl}`
+        `Runtime: ${Updates.runtimeVersion}\nChannel: ${
+          Updates.channel ?? "N/A"
+        }`
       );
 
       if (update.isAvailable) {
@@ -37,7 +38,7 @@ const UpdateCheckScreen = () => {
         setStatus("App is up to date.");
       }
     } catch (error: any) {
-      console.error(error);
+      console.error("Update check failed:", error);
       setUpdateAvailable(false);
       setStatus("Failed to check for updates.");
       setDebugInfo(error?.message || JSON.stringify(error));
@@ -50,13 +51,18 @@ const UpdateCheckScreen = () => {
     setLoading(true);
     setStatus("Downloading update...");
     try {
-      await Updates.fetchUpdateAsync();
-      setStatus("Update downloaded! Restarting app...");
-      await Updates.reloadAsync();
+      const result = await Updates.fetchUpdateAsync();
+      if (result.isNew) {
+        setStatus("Update downloaded! Restarting app...");
+        await Updates.reloadAsync();
+      } else {
+        setStatus("No new update found.");
+      }
     } catch (error: any) {
-      console.error(error);
-      setStatus("Failed to install update.");
+      console.error("Update install failed:", error);
+      setStatus("Failed to install update. Please try again.");
       setDebugInfo(error?.message || JSON.stringify(error));
+      setUpdateAvailable(true);
     } finally {
       setLoading(false);
     }

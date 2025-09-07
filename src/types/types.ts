@@ -14,9 +14,9 @@ export interface Product {
 export interface PriceListProduct {
   _id?: string;
   name: string;
-  price1?: number;
-  price2?: number;
-  price3?: number;
+  price1?: string;
+  price2?: string;
+  price3?: string;
   vendorName: string;
 }
 

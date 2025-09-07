@@ -42,9 +42,7 @@ const PriceListCard: React.FC<Props> = ({ product, onDelete, onEdit }) => {
           <Text style={styles.price}>-</Text>
         )}
       </View>
-      <Text style={styles.vendor}>
-        Vendor: <Text style={styles.vendorName}>{product.vendorName}</Text>
-      </Text>
+      <Text style={styles.vendor}>Vendor: {product.vendorName}</Text>
 
       <View style={styles.actionsContainer}>
         <TouchableOpacity
@@ -92,8 +90,7 @@ const getStyles = (colors: Colors) =>
       marginVertical: 4,
     },
     price: { color: colors.primary, fontWeight: "600", marginVertical: 2 },
-    vendor: { color: colors.text, marginVertical: 2 },
-    vendorName: { color: colors.mutedText },
+    vendor: { marginVertical: 2, color: colors.mutedText },
     actionsContainer: {
       flexDirection: "row",
       justifyContent: "flex-end",

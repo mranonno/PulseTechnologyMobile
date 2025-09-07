@@ -1,4 +1,3 @@
-// src/services/checkForUpdate.ts
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 
@@ -15,17 +14,28 @@ export const checkForUpdate = async () => {
           {
             text: "Update",
             onPress: async () => {
-              await Updates.fetchUpdateAsync();
-              Alert.alert(
-                "Update Ready",
-                "Restarting app to apply the update...",
-                [
-                  {
-                    text: "Restart",
-                    onPress: () => Updates.reloadAsync(),
-                  },
-                ]
-              );
+              try {
+                await Updates.fetchUpdateAsync();
+                Alert.alert(
+                  "Update Ready",
+                  "Restarting app to apply the update...",
+                  [
+                    {
+                      text: "Restart",
+                      onPress: async () => {
+                        try {
+                          await Updates.reloadAsync();
+                        } catch (reloadError) {
+                          console.error("Reload failed:", reloadError);
+                        }
+                      },
+                    },
+                  ]
+                );
+              } catch (fetchError) {
+                console.error("Fetch update error:", fetchError);
+                Alert.alert("Error", "Failed to download update.");
+              }
             },
           },
         ]

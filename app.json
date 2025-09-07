@@ -13,6 +13,7 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/6df733ee-09b0-499c-81d6-505f8293e3c5"
     },
+
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
