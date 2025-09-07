@@ -11,6 +11,7 @@ import { ThemeProvider } from "./src/theme/ThemeProvider";
 import { GlobalProvider } from "./src/context/GlobalContext";
 import Main from "./src/_layout/Main";
 import { AuthProvider } from "./src/context/AuthContext";
+import Toast from "react-native-toast-message";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <ThemeProvider>
             <AuthProvider>
               <BottomSheetModalProvider>
+                <Toast />
                 <Main />
               </BottomSheetModalProvider>
             </AuthProvider>

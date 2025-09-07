@@ -1,37 +1,76 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
-import * as Updates from "expo-updates";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { useThemeContext } from "../../theme/ThemeProvider";
+import { checkForOTAUpdate } from "../../utils/checkForUpdates";
+import Toast from "react-native-toast-message";
 
 const UpdateCheckScreen = () => {
-  const [status, setStatus] = useState("Checking for updates...");
+  const { colors } = useThemeContext();
+  const navigation = useNavigation();
+  const [loading, setLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState<string>("");
 
-  const checkAndUpdate = async () => {
-    try {
-      const update = await Updates.checkForUpdateAsync();
-      if (update.isAvailable) {
-        setStatus("Downloading update...");
-        const result = await Updates.fetchUpdateAsync();
-        if (result.isNew) {
-          setStatus("Installing update...");
-          await Updates.reloadAsync();
-        }
-      } else {
-        setStatus("App is up to date.");
-      }
-    } catch (error) {
-      setStatus("Failed to check or install updates.");
-      console.error("OTA update error:", error);
+  const showToast = useCallback(
+    (
+      type: "success" | "error" | "info",
+      title: string,
+      message?: string,
+      duration = 2000
+    ) => {
+      Toast.show({
+        type,
+        text1: title,
+        text2: message,
+        visibilityTime: duration,
+      });
+    },
+    []
+  );
+
+  const handleUpdateCheck = useCallback(async () => {
+    const { status, error } = await checkForOTAUpdate();
+
+    switch (status) {
+      case "updated":
+        setStatusMessage("Update downloaded. Restarting app...");
+        showToast("success", "Update Downloaded", "Restarting app...");
+        break;
+
+      case "uptodate":
+        setStatusMessage("You're already up-to-date!");
+        showToast("success", "You're up-to-date!");
+        setTimeout(() => navigation.goBack(), 1500);
+        break;
+
+      case "failed":
+        setStatusMessage("Update check failed: " + error);
+        showToast("error", "Update check failed", error);
+        setTimeout(() => navigation.goBack(), 2000);
+        break;
     }
-  };
+
+    setLoading(false);
+  }, [navigation, showToast]);
 
   useEffect(() => {
-    checkAndUpdate();
-  }, []);
+    handleUpdateCheck();
+  }, [handleUpdateCheck]);
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" style={{ marginBottom: 20 }} />
-      <Text style={styles.status}>{status}</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {loading ? (
+        <>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.message, { color: colors.text }]}>
+            Checking for updates...
+          </Text>
+        </>
+      ) : (
+        <Text style={[styles.message, { color: colors.text }]}>
+          {statusMessage}
+        </Text>
+      )}
     </View>
   );
 };
@@ -43,7 +82,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
   },
-  status: { fontSize: 16, textAlign: "center" },
+  message: {
+    marginTop: 10,
+    fontSize: 16,
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
 });
