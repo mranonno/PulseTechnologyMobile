@@ -101,7 +101,7 @@ const SettingsScreen = () => {
       action: openBottomSheet,
     },
     {
-      title: "Check for Updates",
+      title: "Check for Update",
       icon: "cloud-download-outline",
       action: handleCheckUpdates,
     },
