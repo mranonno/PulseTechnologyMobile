@@ -1,4 +1,4 @@
-import React, { memo, useRef, useState, useEffect } from "react";
+import React, { memo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,7 @@ import {
   TouchableOpacity,
   GestureResponderEvent,
   Alert,
-  Modal,
-  Animated,
+  ImageSourcePropType,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
@@ -20,6 +19,7 @@ import GlobalBottomSheetModal from "./modal/GlobalBottomSheetModal";
 import { updateStock } from "../services/productService";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAuth } from "../context/AuthContext";
+import EnhancedImageViewing from "react-native-image-viewing";
 
 interface ProductCardProps {
   product: Product;
@@ -28,64 +28,33 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = memo(
-  ({ product, onEdit, onDelete }) => {
+  ({ product, onDelete, onEdit }) => {
     const { colors } = useThemeContext();
     const styles = getStyles(colors);
-    const [loading, setLoading] = useState(false);
     const { user } = useAuth();
     const placeholder = require("../../assets/placeholder.png");
-    const [isPreviewVisible, setPreviewVisible] = useState(false);
 
+    // Image state for fallback
+    const [imgSource, setImgSource] = useState<ImageSourcePropType>(
+      product.image ? { uri: product.image } : placeholder
+    );
+    const handleImageError = () => setImgSource(placeholder);
+
+    // Bottom sheet reference
     const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-    /** ------------------------
-     * Animations
-     * -----------------------*/
-    // Card entry animation
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.95)).current;
+    // Image preview state
+    const [isPreviewVisible, setPreviewVisible] = useState(false);
+    const previewImages = [
+      product.image ? { uri: product.image } : placeholder,
+    ];
 
-    // Image press animation
-    const pressAnim = useRef(new Animated.Value(1)).current;
-
-    // Modal preview animation
-    const scalePreview = useRef(new Animated.Value(0.8)).current;
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 5,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, []);
-
-    useEffect(() => {
-      if (isPreviewVisible) {
-        Animated.spring(scalePreview, {
-          toValue: 1,
-          friction: 6,
-          useNativeDriver: true,
-        }).start();
-      } else {
-        scalePreview.setValue(0.8);
-      }
-    }, [isPreviewVisible]);
-
-    const handleOpenModal = () => bottomSheetRef.current?.present();
-
+    // Stock update state
+    const [loading, setLoading] = useState(false);
     const handleStockSubmit = async (type: "in" | "out", quantity: number) => {
       setLoading(true);
       try {
         await updateStock(product._id!, type, quantity);
-
-        // Update quantity safely
         product.quantity =
           type === "in"
             ? (product.quantity ?? 0) + quantity
@@ -104,50 +73,30 @@ const ProductCard: React.FC<ProductCardProps> = memo(
       }
     };
 
-    /** ------------------------
-     * Image press handlers
-     * -----------------------*/
-    const handleImagePressIn = () => {
-      Animated.spring(pressAnim, {
-        toValue: 0.95,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handleImagePressOut = () => {
-      Animated.spring(pressAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
-      setPreviewVisible(true);
-    };
-
-    const handleClosePreview = () => setPreviewVisible(false);
+    const handleOpenModal = () => bottomSheetRef.current?.present();
 
     return (
-      <Animated.View
-        style={[
-          styles.card,
-          {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
-      >
-        {/* Image */}
-        <TouchableOpacity
-          onPressIn={handleImagePressIn}
-          onPressOut={handleImagePressOut}
-          activeOpacity={1}
-        >
-          <Animated.Image
-            source={product.image ? { uri: product.image } : placeholder}
-            style={[styles.image, { transform: [{ scale: pressAnim }] }]}
+      <View style={styles.card}>
+        {/* Thumbnail */}
+        <TouchableOpacity onPress={() => setPreviewVisible(true)}>
+          <Image
+            source={imgSource}
+            style={styles.image}
             resizeMode="cover"
+            onError={handleImageError}
+            accessibilityLabel={`${product.name} image`}
           />
         </TouchableOpacity>
 
-        {/* Main Info */}
+        {/* Image Preview */}
+        <EnhancedImageViewing
+          images={previewImages}
+          imageIndex={0}
+          visible={isPreviewVisible}
+          onRequestClose={() => setPreviewVisible(false)}
+        />
+
+        {/* Product Info */}
         <View style={styles.infoContainer}>
           <Text style={styles.name} numberOfLines={2}>
             {product.name}
@@ -186,19 +135,24 @@ const ProductCard: React.FC<ProductCardProps> = memo(
               color={colors.primary}
             />
           </TouchableOpacity>
+
           {user?.role === "admin" && (
-            <TouchableOpacity onPress={onEdit} style={styles.iconButton}>
-              <Ionicons
-                name="create-outline"
-                size={24}
-                color={colors.primary}
-              />
-            </TouchableOpacity>
-          )}
-          {user?.role === "admin" && (
-            <TouchableOpacity onPress={onDelete} style={styles.iconButton}>
-              <Ionicons name="trash-outline" size={24} color={colors.danger} />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity onPress={onEdit} style={styles.iconButton}>
+                <Ionicons
+                  name="create-outline"
+                  size={24}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onDelete} style={styles.iconButton}>
+                <Ionicons
+                  name="trash-outline"
+                  size={24}
+                  color={colors.danger}
+                />
+              </TouchableOpacity>
+            </>
           )}
 
           <GlobalBottomSheetModal ref={bottomSheetRef}>
@@ -208,42 +162,8 @@ const ProductCard: React.FC<ProductCardProps> = memo(
               loading={loading}
             />
           </GlobalBottomSheetModal>
-
-          {/* Image Preview Modal */}
-          <Modal
-            visible={isPreviewVisible}
-            transparent={true}
-            onRequestClose={handleClosePreview}
-          >
-            <View style={styles.modalContainer}>
-              {/* Background tap to close */}
-              <TouchableOpacity
-                style={styles.modalBackground}
-                onPress={handleClosePreview}
-                activeOpacity={1}
-              />
-
-              {/* Close button */}
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={handleClosePreview}
-              >
-                <Ionicons name="close" size={28} color={colors.text} />
-              </TouchableOpacity>
-
-              {/* Image Preview */}
-              <Animated.Image
-                source={product.image ? { uri: product.image } : placeholder}
-                style={[
-                  styles.modalImage,
-                  { transform: [{ scale: scalePreview }] },
-                ]}
-                resizeMode="contain"
-              />
-            </View>
-          </Modal>
         </View>
-      </Animated.View>
+      </View>
     );
   }
 );
@@ -299,29 +219,6 @@ const getStyles = (colors: Colors) =>
       minHeight: 80,
     },
     iconButton: { padding: 2 },
-    modalContainer: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.85)",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    modalBackground: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    modalImage: {
-      width: "90%",
-      height: "70%",
-      borderRadius: 12,
-    },
-    closeButton: {
-      position: "absolute",
-      top: 40,
-      right: 20,
-      zIndex: 10,
-      backgroundColor: "rgba(0,0,0,0.6)",
-      padding: 6,
-      borderRadius: 20,
-    },
   });
 
 export default ProductCard;

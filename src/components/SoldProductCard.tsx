@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeContext } from "../theme/ThemeProvider";
 import { Product } from "../types/types";
 import { formatDate } from "../utils/commonFunction";
+import EnhancedImageViewing from "react-native-image-viewing";
 
 // Helper function to calculate days ago string
 function getDaysAgo(dateString: string | Date) {
@@ -38,6 +39,7 @@ const SoldProductCard: React.FC<SoldProductCardProps> = ({
 }) => {
   const { colors } = useThemeContext();
   const styles = getStyles(colors);
+  const [visible, setIsVisible] = useState(false);
 
   const createdAt = product.createdAt ?? new Date().toISOString();
 
@@ -50,12 +52,21 @@ const SoldProductCard: React.FC<SoldProductCardProps> = ({
 
   return (
     <View style={styles.card}>
-      <Image
-        source={imgSource}
-        style={styles.image}
-        resizeMode="cover"
-        onError={handleImageError}
-        accessibilityLabel={`${product.name} image`}
+      <TouchableOpacity onPress={() => setIsVisible(true)}>
+        <Image
+          source={imgSource}
+          style={styles.image}
+          resizeMode="cover"
+          onError={handleImageError}
+          accessibilityLabel={`${product.name} image`}
+        />
+      </TouchableOpacity>
+
+      <EnhancedImageViewing
+        images={[product.image ? { uri: product.image } : placeholder]}
+        imageIndex={0}
+        visible={visible}
+        onRequestClose={() => setIsVisible(false)}
       />
 
       <View style={styles.info}>
