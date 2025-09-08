@@ -17,7 +17,9 @@ export interface PriceListProduct {
   price1?: string;
   price2?: string;
   price3?: string;
-  vendorName: string;
+  vendorName1?: string;
+  vendorName2?: string;
+  vendorName3?: string;
 }
 
 export interface SoldProduct {

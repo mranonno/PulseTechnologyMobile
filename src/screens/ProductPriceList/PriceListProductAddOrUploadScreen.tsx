@@ -28,14 +28,24 @@ const fields = [
     keyboardType: "default",
     required: true,
   },
+  { key: "price1", label: "Price 1", keyboardType: "default", required: true },
   {
-    key: "vendorName",
-    label: "Vendor Name",
+    key: "vendorName1",
+    label: "Vendor Name 1",
     keyboardType: "default",
   },
-  { key: "price1", label: "Price 1", keyboardType: "default", required: true },
   { key: "price2", label: "Price 2", keyboardType: "default" },
+  {
+    key: "vendorName2",
+    label: "Vendor Name 2",
+    keyboardType: "default",
+  },
   { key: "price3", label: "Price 3", keyboardType: "default" },
+  {
+    key: "vendorName3",
+    label: "Vendor Name 3",
+    keyboardType: "default",
+  },
 ];
 
 export default function PriceListProductAddOrUpdateScreen() {
@@ -49,7 +59,9 @@ export default function PriceListProductAddOrUpdateScreen() {
   // single form state object
   const [form, setForm] = useState({
     name: product?.name || "",
-    vendorName: product?.vendorName || "",
+    vendorName1: product?.vendorName1 || "",
+    vendorName2: product?.vendorName2 || "",
+    vendorName3: product?.vendorName3 || "",
     price1: product?.price1?.toString() || "",
     price2: product?.price2?.toString() || "",
     price3: product?.price3?.toString() || "",
@@ -62,16 +74,18 @@ export default function PriceListProductAddOrUpdateScreen() {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim() || !form.vendorName.trim() || !form.price1.trim()) {
-      Alert.alert("Error", "Name, Vendor, and Price1 are required");
+    if (!form.name.trim() || !form.vendorName1.trim() || !form.price1.trim()) {
+      Alert.alert("Error", "Name, Vendor1, and Price1 are required");
       return;
     }
 
     const productData: PriceListProduct = {
       _id: product?._id,
       name: form.name.trim(),
-      vendorName: form.vendorName.trim(),
-      price1: form.price1 || "0",
+      vendorName1: form.vendorName1.trim(),
+      vendorName2: form.vendorName2.trim(),
+      vendorName3: form.vendorName3.trim(),
+      price1: form.price1 || "",
       price2: form.price2 ? form.price2 : undefined,
       price3: form.price3 ? form.price3 : undefined,
     };

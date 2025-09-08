@@ -28,41 +28,62 @@ const PriceListCard: React.FC<Props> = ({ product, onDelete, onEdit }) => {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.name}>{product.name}</Text>
-      <View style={styles.priceContainer}>
-        <Text style={styles.price}>৳{product.price1}</Text>
-        {product.price2 ? (
-          <Text style={styles.price}>৳{product.price2}</Text>
-        ) : (
-          <Text style={styles.price}>-</Text>
-        )}
-        {product.price3 ? (
-          <Text style={styles.price}>৳{product.price3}</Text>
-        ) : (
-          <Text style={styles.price}>-</Text>
-        )}
+      <View style={styles.nameAndActionsContainer}>
+        <Text numberOfLines={1} style={styles.name}>
+          {product.name}
+        </Text>
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity
+            onPress={onEdit}
+            style={styles.iconButton}
+            activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit product ${product.name}`}
+          >
+            <Ionicons name="create-outline" size={24} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleDelete}
+            style={styles.iconButton}
+            activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete product ${product.name}`}
+          >
+            <Ionicons name="trash-outline" size={24} color={colors.danger} />
+          </TouchableOpacity>
+        </View>
       </View>
-      <Text style={styles.vendor}>Vendor: {product.vendorName}</Text>
 
-      <View style={styles.actionsContainer}>
-        <TouchableOpacity
-          onPress={onEdit}
-          style={styles.iconButton}
-          activeOpacity={0.6}
-          accessibilityRole="button"
-          accessibilityLabel={`Edit product ${product.name}`}
-        >
-          <Ionicons name="create-outline" size={24} color={colors.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleDelete}
-          style={styles.iconButton}
-          activeOpacity={0.6}
-          accessibilityRole="button"
-          accessibilityLabel={`Delete product ${product.name}`}
-        >
-          <Ionicons name="trash-outline" size={24} color={colors.danger} />
-        </TouchableOpacity>
+      <View style={styles.priceContainer}>
+        <View style={styles.priceInfoContainer}>
+          <Text style={styles.price}>৳{product.price1}</Text>
+          <Text numberOfLines={1} style={styles.vendor}>
+            Vendor: {product.vendorName1}
+          </Text>
+        </View>
+        <View style={styles.divider} />
+        {product.price2 ? (
+          <View style={styles.priceInfoContainer}>
+            <Text style={styles.price}>৳{product.price2}</Text>
+            <Text numberOfLines={1} style={styles.vendor}>
+              Vendor: {product.vendorName2}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.price}>-</Text>
+        )}
+        <View style={styles.divider} />
+
+        {product.price3 ? (
+          <View style={styles.priceInfoContainer}>
+            <Text style={styles.price}>৳{product.price3}</Text>
+            <Text numberOfLines={1} style={styles.vendor}>
+              Vendor: {product.vendorName3}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.price}>-</Text>
+        )}
       </View>
     </View>
   );
@@ -81,22 +102,43 @@ const getStyles = (colors: Colors) =>
       shadowOpacity: 0.15,
       shadowRadius: 4,
       marginBottom: 8,
-      padding: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
     },
-    name: { fontSize: 16, fontWeight: "600", color: colors.text },
+    name: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+      maxWidth: "80%",
+    },
     priceContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+      flexDirection: "column",
       marginVertical: 4,
     },
-    price: { color: colors.primary, fontWeight: "600", marginVertical: 2 },
-    vendor: { marginVertical: 2, color: colors.mutedText },
+    price: { color: colors.primary, fontWeight: "600", width: "30%" },
+    vendor: { color: colors.mutedText, width: "70%", paddingRight: 6 },
     actionsContainer: {
       flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: 10,
+      alignItems: "center",
     },
     iconButton: {
       padding: 4,
+    },
+    nameAndActionsContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    priceInfoContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      flex: 1,
+    },
+    divider: {
+      height: 1,
+      width: "100%",
+      backgroundColor: colors.border,
+      marginVertical: 2,
     },
   });
